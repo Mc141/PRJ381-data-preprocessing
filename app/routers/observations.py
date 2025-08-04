@@ -17,22 +17,41 @@ if not logger.hasHandlers():
 router = APIRouter()
 
 
-# Gets all observations from Inat
 @router.get("/observations")
 async def read_observations():
+    """
+    Fetch all iNaturalist observations (no date filter).
+
+    :returns: A list of observations.
+    :rtype: List[Dict]
+    :raises HTTPException: If the request fails or data cannot be fetched.
+    """
     pages = await get_pages(logger=logger)
     observations = get_observations(pages)
     logger.info(f"Fetched {len(observations)} observations (no date filter)")
     return observations
 
 
-# Gets all observations from Inat from a specified date
 @router.get("/observations/from")
 async def read_observations_from_date(
     year: int = Query(..., description="Year of the observation date"),
     month: int = Query(..., description="Month of the observation date"),
     day: int = Query(..., description="Day of the observation date")
 ):
+    """
+    Fetch iNaturalist observations starting from a specific date.
+
+    :param year: Year of the observation date.
+    :type year: int
+    :param month: Month of the observation date.
+    :type month: int
+    :param day: Day of the observation date.
+    :type day: int
+
+    :returns: A list of filtered observations.
+    :rtype: List[Dict]
+    :raises HTTPException: If the date is invalid or in the future.
+    """
     try:
         start_date = datetime.datetime(year, month, day)
     except ValueError as e:
@@ -54,15 +73,21 @@ async def read_observations_from_date(
     return observations
 
 
-# Gets a single observation based on ID
 @router.get("/observations/{observation_id}")
 def read_observation(observation_id: int = Path(..., description="ID of the specified observation")):
+    """
+    Fetch a single iNaturalist observation by its ID.
+
+    :param observation_id: ID of the observation to fetch.
+    :type observation_id: int
+
+    :returns: A single observation dictionary.
+    :rtype: Dict
+    :raises HTTPException: If the observation is not found or invalid.
+    """
     observation = get_observation_by_id(observation_id, logger=logger)
     if observation is None:
         logger.warning(f"Observation ID {observation_id} not found or invalid.")
         raise HTTPException(status_code=404, detail=f"Observation with ID {observation_id} not found.")
     logger.info(f"Fetched observation ID {observation_id}")
     return observation
-
-
-
