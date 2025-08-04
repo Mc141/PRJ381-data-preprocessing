@@ -1,1 +1,76 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+env/
+ENV/
+venv/
+.pip-wheel-metadata/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# VS Code and other IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Testing and coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.*
+.cache
+.pytest_cache/
+pytest-debug.log
+
+# MyPy, Pylint
+.mypy_cache/
+.dmypy.json
+.pylint.d/
+
+# Environment variables
+.env
+.env.*
+
+# Mac and Linux
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# YAML, JSON config backups
+*.bak
+*.tmp
+*.swp
+
+# Data outputs
 data/
+*.csv
+*.json
+*.db
+*.sqlite3
+
+# Docker volumes and build artifacts
+docker-compose.override.yml
+init-mongo.js
+mongo_data/
+invasive_mongo_docker/
+
+# Compiled files or build tools
+build/
+dist/
+*.egg-info/
+
+# Node stuff (if using JS frontends)
+node_modules/
+
+# Local dev files
+*.local
+*.secret
