@@ -27,7 +27,7 @@ async def read_observations():
 
 
 # Gets all observations from Inat from a specified date
-@router.get("/observations/from-date")
+@router.get("/observations/from")
 async def read_observations_from_date(
     year: int = Query(..., description="Year of the observation date"),
     month: int = Query(..., description="Month of the observation date"),
