@@ -1,13 +1,16 @@
 import logging
 import datetime
+from typing import List, Dict
+import copy
+
 from fastapi import APIRouter, Query, Path, HTTPException
 from app.services.inat_fetcher import get_pages, get_observations, get_observation_by_id
+from app.services.database import get_database
 
 # Setup logger
 logger = logging.getLogger("inat")
 logger.setLevel(logging.INFO)
 
-# Add stream handler if no handlers are already configured
 if not logger.hasHandlers():
     handler = logging.StreamHandler()
     formatter = logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s")
@@ -16,42 +19,30 @@ if not logger.hasHandlers():
 
 router = APIRouter()
 
+# MongoDB collection name
+INAT_COLLECTION = "inat_observations"
 
-@router.get("/observations")
-async def read_observations():
-    """
-    Fetch all iNaturalist observations (no date filter).
-
-    :returns: A list of observations.
-    :rtype: List[Dict]
-    :raises HTTPException: If the request fails or data cannot be fetched.
-    """
+@router.get("/observations", response_model=List[Dict])
+async def read_observations(store_in_db: bool = Query(False, description="Store fetched observations in MongoDB")):
     pages = await get_pages(logger=logger)
     observations = get_observations(pages)
     logger.info(f"Fetched {len(observations)} observations (no date filter)")
+
+    if store_in_db:
+        db = get_database()
+        db[INAT_COLLECTION].insert_many(copy.deepcopy(observations))  # Prevent _id mutation
+        logger.info(f"Stored {len(observations)} observations in MongoDB")
+
     return observations
 
 
-@router.get("/observations/from")
+@router.get("/observations/from", response_model=List[Dict])
 async def read_observations_from_date(
     year: int = Query(..., description="Year of the observation date"),
     month: int = Query(..., description="Month of the observation date"),
-    day: int = Query(..., description="Day of the observation date")
+    day: int = Query(..., description="Day of the observation date"),
+    store_in_db: bool = Query(False, description="Store fetched observations in MongoDB")
 ):
-    """
-    Fetch iNaturalist observations starting from a specific date.
-
-    :param year: Year of the observation date.
-    :type year: int
-    :param month: Month of the observation date.
-    :type month: int
-    :param day: Day of the observation date.
-    :type day: int
-
-    :returns: A list of filtered observations.
-    :rtype: List[Dict]
-    :raises HTTPException: If the date is invalid or in the future.
-    """
     try:
         start_date = datetime.datetime(year, month, day)
     except ValueError as e:
@@ -59,35 +50,51 @@ async def read_observations_from_date(
         raise HTTPException(status_code=400, detail=f"Invalid date: {e}")
 
     today = datetime.datetime.today()
-
     if start_date >= today:
-        logger.warning(f"Provided start_date {start_date.date()} is in the future.")
-        raise HTTPException(
-            status_code=400,
-            detail=f"start_date must be less than the current date: {today.date()}"
-        )
+        raise HTTPException(status_code=400, detail="Start date must be in the past")
 
     pages = await get_pages(start_date, logger=logger)
     observations = get_observations(pages)
     logger.info(f"Fetched {len(observations)} observations from {start_date.date()}")
+
+    if store_in_db:
+        db = get_database()
+        db[INAT_COLLECTION].insert_many(copy.deepcopy(observations))  # Prevent _id mutation
+        logger.info(f"Stored {len(observations)} observations in MongoDB")
+
     return observations
 
 
-@router.get("/observations/{observation_id}")
-def read_observation(observation_id: int = Path(..., description="ID of the specified observation")):
+
+
+@router.get("/observations/db", response_model=List[Dict])
+def get_observations_from_db(limit: int = Query(100, description="Number of records to fetch")):
+    """
+    Retrieve stored iNaturalist observations from MongoDB.
+    """
+    db = get_database()
+    records = list(db[INAT_COLLECTION].find({}, {"_id": 0}).limit(limit))
+    return records
+
+
+
+@router.get("/observations/{observation_id}", response_model=Dict)
+def read_observation(observation_id: int):
     """
     Fetch a single iNaturalist observation by its ID.
-
-    :param observation_id: ID of the observation to fetch.
-    :type observation_id: int
-
-    :returns: A single observation dictionary.
-    :rtype: Dict
-    :raises HTTPException: If the observation is not found or invalid.
     """
     observation = get_observation_by_id(observation_id, logger=logger)
     if observation is None:
-        logger.warning(f"Observation ID {observation_id} not found or invalid.")
-        raise HTTPException(status_code=404, detail=f"Observation with ID {observation_id} not found.")
-    logger.info(f"Fetched observation ID {observation_id}")
+        raise HTTPException(status_code=404, detail=f"Observation {observation_id} not found")
     return observation
+
+
+
+@router.delete("/observations/db")
+def delete_observations_from_db():
+    """
+    Delete all stored iNaturalist observations from MongoDB.
+    """
+    db = get_database()
+    result = db[INAT_COLLECTION].delete_many({})
+    return {"deleted_count": result.deleted_count}
