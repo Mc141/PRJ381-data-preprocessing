@@ -1,96 +1,156 @@
 # Invasive Plant Observation Collector
 
-**Status:** Work in Progress 
+**Status:** Work in Progress
 
-A standalone asynchronous data collection service designed to support a larger ecological monitoring and spread prediction platform.
+A standalone asynchronous data collection and enrichment service for invasive plant monitoring.
+It supports **iNaturalist** species observation retrieval, **NASA POWER API** environmental enrichment, and persistent storage in **MongoDB**.
+It forms part of a larger ecological monitoring and spread prediction platform.
+
+---
 
 ## Project Overview
 
-This microservice retrieves geospatial observation data from the **iNaturalist API** for a specific invasive plant species (*Pyracantha angustifolia*) within a custom-defined boundary (focused on the Western Cape, South Africa).
+This microservice:
 
-The goal of this service is to:
-- Gather **accurate and filtered** observation data
-- Enrich it later with environmental variables (e.g., temperature)
-- Provide a **clean, retrainable dataset** for ML models used in predicting seasonal spread
+* Retrieves geospatial observation data from **iNaturalist** for *Pyracantha angustifolia* within a defined Western Cape, South Africa bounding box.
+* Enriches observations with environmental variables (temperature, precipitation, humidity, wind speed, radiation, etc.) from **NASA POWER API**.
+* Stores observations and weather data in **MongoDB** for later use in ML training and prediction.
+* Provides an API for fetching, refreshing, merging, and exporting datasets.
 
-This service is intended to run periodically and store data locally or in a database (e.g., PostgreSQL), which will later be used by other components in the full system for modeling and prediction.
+This service is intended to:
+
+* Run periodically (scheduled job or on-demand)
+* Provide **clean, retrainable datasets** for ML models predicting seasonal spread
+* Serve as a **data ingestion and enrichment layer** in a multi-service architecture
+
+---
 
 ## Current Functionality
 
-- Pulls **research-grade** sightings from iNaturalist via asynchronous HTTP requests
-- Filters out low-accuracy or incomplete data points
-- Structures the observation data into a clean list of dictionaries
-- Includes **unit tests and fixtures** using `pytest`, following a **Test-Driven Development (TDD)** workflow
-- Fully asynchronous and uses `httpx`, `asyncio` for scalable API interactions
-- **FastAPI REST endpoints** for flexible data access and integration
+* **iNaturalist API Integration**
+
+  * Asynchronous fetching of observation data
+  * Filtering by date range, location bounding box, species taxon ID
+  * Validation of positional accuracy
+  * Cleaned observation structure ready for ML use
+  * Optional storage in MongoDB
+
+* **NASA POWER API Integration**
+
+  * Fetch daily weather data for given coordinates & date ranges
+  * Enrich iNat observations with environmental context
+  * Optional storage in MongoDB
+
+* **Dataset Building & Management**
+
+  * Merge iNat and NASA data into a unified dataset
+  * Refresh weather data for stored iNat observations
+  * Export merged datasets as CSV
+  * Retrieve and manage stored records
+
+* **FastAPI REST Endpoints**
+
+  * Modular routers for `/observations`, `/weather`, `/datasets`
+  * MongoDB persistence layer
+  * Full JSON API responses
+
+---
 
 ## API Endpoints
 
-The service exposes the following REST endpoints:
+### Observations Router (`/observations`)
 
-### `GET /observations`
-Fetches all available research-grade observations for the target species.
+| Method   | Endpoint                         | Description                                                           |
+| -------- | -------------------------------- | --------------------------------------------------------------------- |
+| `GET`    | `/observations`                  | Fetch all iNat observations (no date filter). Optionally store in DB. |
+| `GET`    | `/observations/from`             | Fetch iNat observations from a specific date. Optionally store in DB. |
+| `GET`    | `/observations/{observation_id}` | Retrieve a single observation by ID from iNat API.                    |
+| `GET`    | `/observations/db`               | Retrieve stored iNat observations from MongoDB.                       |
+| `DELETE` | `/observations/db`               | Delete all stored iNat observations.                                  |
 
-### `GET /observations/from-date`
-Retrieves observations from a specified date onwards.
+---
 
-**Query Parameters:**
-- `year` (int, required): Year of the observation date
-- `month` (int, required): Month of the observation date  
-- `day` (int, required): Day of the observation date
+### Weather Router (`/weather`)
 
-**Example:**
-```
-GET /observations/from-date?year=2024&month=1&day=15
-```
+| Method   | Endpoint          | Description                                                                           |
+| -------- | ----------------- | ------------------------------------------------------------------------------------- |
+| `GET`    | `/weather`        | Fetch NASA POWER weather data for coordinates and date range. Optionally store in DB. |
+| `GET`    | `/weather/db`     | Retrieve stored weather data from MongoDB.                                            |
+| `GET`    | `/weather/recent` | Retrieve most recent weather records for a given location.                            |
+| `DELETE` | `/weather/db`     | Delete all stored weather data.                                                       |
 
-### `GET /observations/{observation_id}`
-Fetches a single observation by its unique ID.
+---
 
-**Path Parameters:**
-- `observation_id` (int, required): ID of the specified observation
+### Datasets Router (`/datasets`)
+
+| Method | Endpoint                    | Description                                                              |
+| ------ | --------------------------- | ------------------------------------------------------------------------ |
+| `GET`  | `/datasets/merge`           | Fetch iNat + NASA data concurrently, store in DB, return merged dataset. |
+| `POST` | `/datasets/refresh-weather` | Re-fetch weather for all stored iNat observations and update DB.         |
+| `GET`  | `/datasets/export`          | Export merged dataset as CSV.                                            |
+
+---
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Language | Python 3.11 |
-| Web Framework | FastAPI |
-| HTTP Client | `httpx` (async) |
-| Testing | `pytest`, `pytest-mock` |
+| Component         | Technology          |
+| ----------------- | ------------------- |
+| Language          | Python 3.11+        |
+| Web Framework     | FastAPI             |
+| Async HTTP Client | `httpx`             |
+| Data Handling     | `pandas`            |
+| Database          | MongoDB (`pymongo`) |
+| Environment       | `python-dotenv`     |
+| Logging           | Python `logging`    |
+| Concurrency       | `asyncio`           |
 
-| ORM/DB | Planned `Peewee` + PostgreSQL (future) |
-| Containerization | Docker (planned) |
+---
 
-## Integration Plan
+## Example Workflow
 
-This service will be part of a **larger architecture** involving:
-- A **frontend React SPA** for image classification and reporting
-- A **FastAPI backend** for ML inference and user submissions
-- A **forecast model** combining image classification with environmental data (from NASA POWER API)
-- A **shared PostgreSQL DB** for central data access and periodic model retraining
+1. **Fetch & Store Observations**
 
-This service will run on a schedule (e.g., cron job or async task runner) and can be deployed independently.
+```http
+GET /observations?store_in_db=true
+```
 
+2. **Fetch & Store Weather Data**
 
+```http
+GET /weather?latitude=-33.9249&longitude=18.4073&start_year=2023&start_month=1&start_day=1&end_year=2023&end_month=1&end_day=10&store_in_db=true
+```
 
-## Notes
+3. **Merge & Enrich**
 
-- Only **research-grade** observations within a defined bounding box are collected
-- Designed with **low frequency data loads** in mind (a few rows every few weeks)
-- Comprehensive logging implemented for monitoring and debugging
-- Input validation and error handling for robust API responses
+```http
+GET /datasets/merge?start_year=2023&start_month=1&start_day=1&end_year=2023&end_month=1&end_day=10
+```
+
+4. **Refresh Weather for Stored Observations**
+
+```http
+POST /datasets/refresh-weather
+```
+
+5. **Export Dataset**
+
+```http
+GET /datasets/export
+```
+
+---
 
 ## Future Steps
 
-- [ ] Weather enrichment via NASA POWER API
-- [ ] Database integration with PostgreSQL
-- [ ] Dockerization and container deployment
-- [ ] Scheduled jobs or background task processing
-- [ ] Authentication and rate limiting
-- [ ] Data export capabilities (CSV, JSON)
-- [ ] Monitoring and metrics collection
+* [ ] Add scheduled background jobs for periodic data sync
+* [ ] Introduce update-skipping for already up-to-date weather records
+* [ ] Enhance filtering and query parameters
+* [ ] Dockerize and prepare for deployment
+* [ ] Integration with ML training pipeline
+* [ ] User authentication and API keys
+
+---
 
 ## Maintainer
 
-This is a portfolio component by **Martinus Christoffel Wolmarans** and will contribute to the larger Invasive Plant Monitoring System final year project.
+This is a component by **Martinus Christoffel Wolmarans** and will contribute to the larger Invasive Plant Monitoring System final year project.
