@@ -24,4 +24,3 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(observations.router)
 app.include_router(weather.router)
 app.include_router(datasets.router)
-
