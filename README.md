@@ -58,6 +58,15 @@ This service is intended to:
 
 ## API Endpoints
 
+### Status Router (`/status`)
+
+| Method | Endpoint                   | Description                                            |
+| ------ | -------------------------- | ------------------------------------------------------ |
+| `GET`  | `/status/health`           | Health check - returns service status and timestamp   |
+| `GET`  | `/status/service_info`     | Service information - returns API details and version |
+
+---
+
 ### Observations Router (`/observations`)
 
 | Method   | Endpoint                         | Description                                                           |
@@ -91,63 +100,132 @@ This service is intended to:
 
 ---
 
+## Documentation
+
+This project uses **Sphinx** for comprehensive documentation generation:
+
+### **Available Documentation**
+
+* **API Reference**: Auto-generated from code docstrings
+* **User Guide**: Setup and usage instructions  
+* **Architecture**: System design and data flow
+* **Testing**: Manual and automated testing procedures
+
+### **Accessing Documentation**
+
+* **Interactive API Docs**: Visit `/docs` (Swagger UI) or `/redoc` (ReDoc) when the server is running
+* **Comprehensive Docs**: Generated using Sphinx with autodoc features
+* **Manual Testing Guide**: See `testplan.md` for detailed endpoint testing procedures
+
+### **Building Documentation**
+
+```bash
+# Install documentation dependencies (already in requirements.txt)
+pip install -r requirements.txt
+
+# Generate documentation (Windows)
+# Option 1: Use PowerShell script
+.\build_docs.ps1
+
+# Option 2: Use batch file  
+.\build_docs.bat
+
+# Option 3: Manual build
+cd docs/
+sphinx-build -b html . _build/html
+
+# View documentation
+# Windows: file:///c:/path/to/project/docs/_build/html/index.html
+# Linux/Mac: open _build/html/index.html
+```
+
+### **Build Scripts**
+
+For convenience, the project includes build scripts:
+
+* **`build_docs.ps1`**: PowerShell script with interactive browser opening
+* **`build_docs.bat`**: Windows batch file for quick building
+* **Generated files**: All build outputs are excluded in `.gitignore`
+
+---
+
 ## Tech Stack
 
-| Component         | Technology          |
-| ----------------- | ------------------- |
-| Language          | Python 3.11+        |
-| Web Framework     | FastAPI             |
-| Async HTTP Client | `httpx`             |
-| Data Handling     | `pandas`            |
-| Database          | MongoDB (`pymongo`) |
-| Environment       | `python-dotenv`     |
-| Logging           | Python `logging`    |
-| Concurrency       | `asyncio`           |
+| Component         | Technology                    |
+| ----------------- | ----------------------------- |
+| Language          | Python 3.11+                 |
+| Web Framework     | FastAPI                       |
+| Async HTTP Client | `httpx`                       |
+| Data Handling     | `pandas`                      |
+| Database          | MongoDB (`pymongo`)           |
+| Environment       | `python-dotenv`               |
+| Logging           | Python `logging`              |
+| Concurrency       | `asyncio`                     |
+| Documentation     | Sphinx + autodoc              |
+| Testing           | pytest + async testing       |
+| API Documentation | Swagger UI + ReDoc (FastAPI)  |
 
 ---
 
 ## Example Workflow
 
-1. **Fetch & Store Observations**
+1. **Check Service Health**
 
 ```http
-GET /observations?store_in_db=true
+GET /api/v1/status/health
+GET /api/v1/status/service_info
 ```
 
-2. **Fetch & Store Weather Data**
+2. **Fetch & Store Observations**
 
 ```http
-GET /weather?latitude=-33.9249&longitude=18.4073&start_year=2023&start_month=1&start_day=1&end_year=2023&end_month=1&end_day=10&store_in_db=true
+GET /api/v1/observations?store_in_db=true
 ```
 
-3. **Merge & Enrich**
+3. **Fetch & Store Weather Data**
 
 ```http
-GET /datasets/merge?start_year=2023&start_month=1&start_day=1&end_year=2023&end_month=1&end_day=10
+GET /api/v1/weather?latitude=-33.9249&longitude=18.4073&start_year=2023&start_month=1&start_day=1&end_year=2023&end_month=1&end_day=10&store_in_db=true
 ```
 
-4. **Refresh Weather for Stored Observations**
+4. **Merge & Enrich**
 
 ```http
-POST /datasets/refresh-weather
+GET /api/v1/datasets/merge?start_year=2023&start_month=1&start_day=1&end_year=2023&end_month=1&end_day=10&years_back=5
 ```
 
-5. **Export Dataset**
+5. **Refresh Weather for Stored Observations**
 
 ```http
-GET /datasets/export
+POST /api/v1/datasets/refresh-weather
+```
+
+6. **Export Dataset**
+
+```http
+GET /api/v1/datasets/export
 ```
 
 ---
 
 ## Future Steps
 
-* [ ] Add scheduled background jobs for periodic data sync
-* [ ] Introduce update-skipping for already up-to-date weather records
-* [ ] Enhance filtering and query parameters
-* [ ] Dockerize and prepare for deployment
-* [ ] Integration with ML training pipeline
-* [ ] User authentication and API keys
+* [x] **Documentation & Testing**
+  * [x] Complete Sphinx documentation setup with auto-generated API docs
+  * [x] Comprehensive test coverage (131 tests) with error handling
+  * [ ] Add performance benchmarking documentation
+* [ ] **Data Pipeline Enhancements**
+  * [ ] Add scheduled background jobs for periodic data sync
+  * [ ] Introduce update-skipping for already up-to-date weather records
+  * [ ] Enhance filtering and query parameters
+* [ ] **Deployment & Infrastructure**
+  * [ ] Dockerize and prepare for deployment
+  * [ ] User authentication and API keys
+  * [ ] Integration with ML training pipeline
+* [ ] **System Reliability**
+  * [ ] Add comprehensive error handling and retry mechanisms
+  * [ ] Implement data validation and quality checks
+  * [ ] Add monitoring and alerting capabilities
 
 ---
 

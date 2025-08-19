@@ -68,6 +68,12 @@ build/
 dist/
 *.egg-info/
 
+# Sphinx documentation
+docs/_build/
+docs/_static/
+docs/_templates/
+.readthedocs.yml
+
 # Node stuff (if using JS frontends)
 node_modules/
 
@@ -75,4 +81,27 @@ node_modules/
 *.local
 *.secret
 
+# Python cache directories
 app/routers/__pycache__/
+app/services/__pycache__/
+app/models/__pycache__/
+app/schemas/__pycache__/
+
+# Documentation build scripts output
+docs.html
+*.doctree
+
+# FastAPI/Uvicorn
+.uvicorn/
+
+# Database files
+*.db-journal
+*.db-wal
+*.db-shm
+
+# OS specific files
+*.lnk
+*.url
+.fuse_hidden*
+.directory
+.Trash-*
