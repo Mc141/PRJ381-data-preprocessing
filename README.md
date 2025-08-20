@@ -48,9 +48,16 @@ This service is intended to:
   * Export merged datasets as CSV
   * Retrieve and manage stored records
 
+* **Prediction & Modeling**
+
+  * Generate habitat suitability maps based on environmental conditions
+  * Create presence baseline from recent observations
+  * Interactive prediction visualization with Folium maps
+  * Grid-based invasion risk assessment
+
 * **FastAPI REST Endpoints**
 
-  * Modular routers for `/observations`, `/weather`, `/datasets`
+  * Modular routers for `/observations`, `/weather`, `/datasets`, `/predictions`
   * MongoDB persistence layer
   * Full JSON API responses
 
@@ -97,6 +104,16 @@ This service is intended to:
 | `GET`  | `/datasets/merge`           | Fetch iNat + NASA data concurrently, store in DB, return merged dataset. |
 | `POST` | `/datasets/refresh-weather` | Re-fetch weather for all stored iNat observations and update DB.         |
 | `GET`  | `/datasets/export`          | Export merged dataset as CSV.                                            |
+
+---
+
+### Predictions Router (`/predictions`)
+
+| Method | Endpoint                         | Description                                                                     |
+| ------ | -------------------------------- | ------------------------------------------------------------------------------- |
+| `GET`  | `/predictions/presence_baseline` | Get recent observations that form the presence baseline for predictions.        |
+| `GET`  | `/predictions/suitability_map`   | Generate habitat suitability map for the study area with grid predictions.      |
+| `GET`  | `/predictions/visualize_map`     | Create an interactive Folium map showing invasion spread predictions.           |
 
 ---
 
@@ -171,8 +188,9 @@ The `build_docs.py` script automatically:
 | Language          | Python 3.11+                 |
 | Web Framework     | FastAPI                       |
 | Async HTTP Client | `httpx`                       |
-| Data Handling     | `pandas`                      |
+| Data Handling     | `pandas`, `numpy`             |
 | Database          | MongoDB (`pymongo`)           |
+| Geospatial        | `geopy`, `folium`             |
 | Environment       | `python-dotenv`               |
 | Logging           | Python `logging`              |
 | Concurrency       | `asyncio`                     |
@@ -219,6 +237,14 @@ POST /api/v1/datasets/refresh-weather
 
 ```http
 GET /api/v1/datasets/export
+```
+
+7. **Generate Predictions**
+
+```http
+GET /api/v1/predictions/presence_baseline?days_back=100
+GET /api/v1/predictions/suitability_map?days_back=100&grid_resolution=0.5
+GET /api/v1/predictions/visualize_map?days_back=100&grid_resolution=0.5&save_file=true
 ```
 
 ---
