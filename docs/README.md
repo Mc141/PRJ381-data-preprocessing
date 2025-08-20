@@ -5,7 +5,7 @@ This document serves as both a qui-**Status checking**: Verifies both Sphinx and
 
 ## Documentation Types
 
-### Interactive API Documentationrt guide and comprehensive documentation strategy for the PRJ381 Data Preprocessing API project.
+### Interactive API Documentation guide and comprehensive documentation strategy for the PRJ381 Data Preprocessing API project.
 
 ## Documentation Architecture
 
