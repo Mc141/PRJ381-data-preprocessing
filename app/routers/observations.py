@@ -132,6 +132,41 @@ async def read_observations_from_date(
     day: int = Query(..., description="Day of the observation date"),
     store_in_db: str = Query("false", description="Store fetched observations in MongoDB")
 ):
+    """
+    Retrieve species observations from iNaturalist starting from a specific date.
+
+    Fetches iNaturalist observation data from the specified start date onwards,
+    filtered for the configured geographic region and taxonomic group.
+    Useful for temporal analysis and building historical datasets.
+
+    Args:
+        year (int): Year component of the start date for observation filtering
+        month (int): Month component of the start date (1-12)
+        day (int): Day component of the start date (1-31)
+        store_in_db (str, optional): Whether to store fetched observations in database.
+            Accepts "true"/"false", "1"/"0", "yes"/"no", "on"/"off". 
+            Defaults to "false".
+
+    Returns:
+        List[Dict]: List of standardized observation records from the specified date onwards
+
+    Raises:
+        HTTPException: 
+            - 400 if date parameters are invalid or future date provided
+            - 500 if API request fails or data processing errors occur
+
+    Example:
+        Get observations from a specific date::
+        
+            GET /observations/from?year=2024&month=1&day=15
+            
+        Get and store observations::
+        
+            GET /observations/from?year=2024&month=1&day=15&store_in_db=true
+
+    Note:
+        Start date must be in the past. Future dates will return a 400 error.
+    """
     # Parse store_in_db parameter manually to handle various input formats
     store_in_db_bool = str(store_in_db).lower() in ('true', '1', 'yes', 'on')
     
@@ -167,6 +202,27 @@ async def read_observations_from_date(
 def get_observations_from_db(limit: int = Query(100, description="Number of records to fetch")):
     """
     Retrieve stored iNaturalist observations from MongoDB.
+    
+    Fetches observation records that have been previously stored in the local
+    MongoDB database. Useful for offline analysis and reducing API calls.
+
+    Args:
+        limit (int, optional): Maximum number of records to return. Defaults to 100.
+
+    Returns:
+        List[Dict]: List of stored observation records without MongoDB object IDs
+
+    Example:
+        Get default number of stored observations::
+        
+            GET /observations/db
+            
+        Get specific number of observations::
+        
+            GET /observations/db?limit=50
+
+    Note:
+        Returns empty list if no observations have been stored in the database.
     """
     db = get_database()
     records = list(db[INAT_COLLECTION].find({}, {"_id": 0}).limit(limit))
@@ -175,9 +231,30 @@ def get_observations_from_db(limit: int = Query(100, description="Number of reco
 
 
 @router.get("/observations/{observation_id}", response_model=Dict)
-def read_observation(observation_id: int):
+def read_observation(observation_id: int = Path(..., description="iNaturalist observation ID to retrieve")):
     """
-    Fetch a single iNaturalist observation by its ID.
+    Fetch a single iNaturalist observation by its unique ID.
+    
+    Retrieves detailed information for a specific observation using the 
+    iNaturalist API. Useful for getting complete details about a particular
+    species sighting.
+
+    Args:
+        observation_id (int): The unique iNaturalist observation identifier
+
+    Returns:
+        Dict: Complete observation record with all available metadata
+
+    Raises:
+        HTTPException: 404 if observation with the specified ID is not found
+
+    Example:
+        Get a specific observation::
+        
+            GET /observations/12345
+
+    Note:
+        This endpoint fetches data directly from iNaturalist API, not local storage.
     """
     observation = get_observation_by_id(observation_id, logger=logger)
     if observation is None:
@@ -190,6 +267,25 @@ def read_observation(observation_id: int):
 def delete_observations_from_db():
     """
     Delete all stored iNaturalist observations from MongoDB.
+    
+    Permanently removes all observation records from the local database.
+    Use with caution as this operation cannot be undone.
+
+    Returns:
+        Dict: Response containing the number of deleted records
+
+    Example:
+        Clear all stored observations::
+        
+            DELETE /observations/db
+            
+        Response::
+        
+            {"deleted_count": 42}
+
+    Warning:
+        This operation permanently deletes all stored observation data.
+        Consider backing up data before using this endpoint.
     """
     db = get_database()
     result = db[INAT_COLLECTION].delete_many({})

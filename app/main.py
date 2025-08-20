@@ -24,7 +24,7 @@ Project: PRJ381 Data Preprocessing
 
 from fastapi import FastAPI
 from app.services.database import connect_to_mongo, close_mongo_connection
-from app.routers import observations, weather, datasets, status
+from app.routers import observations, weather, datasets, status, predictions
 from contextlib import asynccontextmanager  
 
 
@@ -55,16 +55,74 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="PRJ381 Data Preprocessing API",
-    description="A comprehensive API for preprocessing invasive species observation data with weather integration",
+    description="""
+    ## A comprehensive API for preprocessing invasive species observation data with weather integration
+
+    This FastAPI service provides endpoints for:
+    
+    * **Species Observations**: Fetch and manage iNaturalist observation data
+    * **Weather Data**: Retrieve historical weather data from NASA POWER API  
+    * **Dataset Building**: Merge observations with weather features for ML pipelines
+    * **Predictions**: Generate invasion risk predictions and visualizations
+    * **Status Monitoring**: Health checks and system status
+
+    ### Documentation
+    
+    * **Interactive API Docs**: Available at `/docs` (Swagger UI)
+    * **Alternative API Docs**: Available at `/redoc` (ReDoc)
+    * **Complete Documentation**: [Sphinx Documentation](http://localhost:8080) *(when docs server is running)*
+    
+    ### Quick Start
+    
+    1. Check system status: `GET /api/v1/status/health`
+    2. Fetch recent observations: `GET /api/v1/observations`
+    3. Get weather data: `GET /api/v1/weather/point`
+    4. Build merged dataset: `POST /api/v1/datasets/build`
+    
+    ### Authentication
+    
+    Currently no authentication required for public endpoints.
+    """,
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan
+    lifespan=lifespan,
+    contact={
+        "name": "Martinus Christoffel Wolmarans", 
+        "email": "mc141@example.com"
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    openapi_tags=[
+        {
+            "name": "status",
+            "description": "System health and status monitoring",
+        },
+        {
+            "name": "observations", 
+            "description": "iNaturalist species observation data management",
+        },
+        {
+            "name": "weather",
+            "description": "NASA POWER weather data retrieval and processing",
+        },
+        {
+            "name": "datasets",
+            "description": "Dataset building and feature engineering",
+        },
+        {
+            "name": "predictions",
+            "description": "Invasion risk prediction and mapping",
+        },
+    ]
 )
 
 
 # Include API routers
+app.include_router(status.router, prefix="/api/v1", tags=["status"])
 app.include_router(observations.router, prefix="/api/v1", tags=["observations"])
 app.include_router(weather.router, prefix="/api/v1", tags=["weather"])
 app.include_router(datasets.router, prefix="/api/v1", tags=["datasets"])
-app.include_router(status.router, prefix="/api/v1", tags=["status"])
+app.include_router(predictions.router, prefix="/api/v1", tags=["predictions"])

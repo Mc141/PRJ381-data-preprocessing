@@ -102,50 +102,65 @@ This service is intended to:
 
 ## Documentation
 
-This project uses **Sphinx** for comprehensive documentation generation:
+This project uses a **hybrid documentation approach** combining FastAPI's automatic API documentation with Sphinx's comprehensive project documentation:
 
 ### **Available Documentation**
 
-* **API Reference**: Auto-generated from code docstrings
-* **User Guide**: Setup and usage instructions  
-* **Architecture**: System design and data flow
-* **Testing**: Manual and automated testing procedures
+* **Interactive API Docs**: Live API testing and exploration
+  * **Swagger UI**: http://localhost:8000/docs
+  * **ReDoc**: http://localhost:8000/redoc
+* **Comprehensive Docs**: Sphinx-generated documentation including:
+  * **API Reference**: Auto-generated from code docstrings
+  * **User Guide**: Setup and usage instructions  
+  * **Architecture**: System design and data flow
+  * **Testing**: Testing strategies and procedures
 
-### **Accessing Documentation**
-
-* **Interactive API Docs**: Visit `/docs` (Swagger UI) or `/redoc` (ReDoc) when the server is running
-* **Comprehensive Docs**: Generated using Sphinx with autodoc features
-* **Manual Testing Guide**: See `testplan.md` for detailed endpoint testing procedures
-
-### **Building Documentation**
+### **Quick Start**
 
 ```bash
-# Install documentation dependencies (already in requirements.txt)
-pip install -r requirements.txt
+# Build and serve documentation (all platforms)
+python build_docs.py --serve --open
 
-# Generate documentation (Windows)
-# Option 1: Use PowerShell script
-.\build_docs.ps1
+# Just build documentation
+python build_docs.py
 
-# Option 2: Use batch file  
-.\build_docs.bat
-
-# Option 3: Manual build
-cd docs/
-sphinx-build -b html . _build/html
-
-# View documentation
-# Windows: file:///c:/path/to/project/docs/_build/html/index.html
-# Linux/Mac: open _build/html/index.html
+# Clean build and serve
+python build_docs.py --clean --serve
 ```
 
-### **Build Scripts**
+### **Advanced Options**
 
-For convenience, the project includes build scripts:
+```bash
+# Check FastAPI server status only
+python build_docs.py --no-sphinx
 
-* **`build_docs.ps1`**: PowerShell script with interactive browser opening
-* **`build_docs.bat`**: Windows batch file for quick building
-* **Generated files**: All build outputs are excluded in `.gitignore`
+# Custom port for documentation server
+python build_docs.py --serve --port 9000
+
+# Get help with all options
+python build_docs.py --help
+```
+
+### **Manual Build**
+
+```bash
+# Manual Sphinx build
+sphinx-build -b html docs/ docs/_build/html
+
+# Start FastAPI server for interactive docs
+uvicorn app.main:app --reload
+```
+
+### **Cross-Platform Compatibility**
+
+The `build_docs.py` script automatically:
+* Detects the project structure from any location
+* Installs required documentation dependencies
+* Works on Windows, macOS, and Linux
+* Uses relative paths (no hardcoded system paths)
+* Provides comprehensive error handling and status reporting
+
+**For detailed documentation strategy, configuration, and best practices, see the [comprehensive documentation guide](docs/README.md).**
 
 ---
 

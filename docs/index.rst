@@ -8,10 +8,28 @@ Welcome to the documentation for the PRJ381 Data Preprocessing API, a comprehens
    :caption: Contents:
 
    overview
-   api_reference
    user_guide
+   api_reference
    architecture
    testing
+
+Documentation Types
+===================
+
+This project provides multiple types of documentation to serve different needs:
+
+**For API Users** 📚
+   * **Interactive API Documentation**: :swagger:`Swagger UI </docs>` - Test endpoints directly in your browser
+   * **Alternative API Documentation**: :redoc:`ReDoc </redoc>` - Clean, responsive API reference
+   * **User Guide**: :doc:`user_guide` - Step-by-step usage examples
+
+**For Developers** 🔧
+   * **API Reference**: :doc:`api_reference` - Complete code documentation  
+   * **Architecture Guide**: :doc:`architecture` - System design and components
+   * **Testing Guide**: :doc:`testing` - Testing strategies and examples
+
+.. tip::
+   **Quick Start**: If you just want to try the API, head to the :swagger:`interactive documentation </docs>` and start making requests!
 
 Overview
 ========
@@ -41,10 +59,22 @@ Quick Start
 
     uvicorn app.main:app --reload
 
-4. **Access Documentation**:
+4. **Build Documentation**::
+
+    python build_docs.py --serve --open
+
+.. note::
+   When running locally, the API will be available at http://localhost:8000
    
-   * Swagger UI: http://localhost:8000/docs
-   * ReDoc: http://localhost:8000/redoc
+   The documentation will be built and served automatically using the universal build script.
+   
+   For manual builds::
+   
+       # Build only
+       python build_docs.py
+       
+       # Clean build and serve
+       python build_docs.py --clean --serve
 
 Indices and tables
 ==================

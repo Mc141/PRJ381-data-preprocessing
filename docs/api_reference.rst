@@ -3,6 +3,17 @@ API Reference
 
 This section provides comprehensive documentation for all API modules, automatically generated from the source code docstrings.
 
+Interactive API Documentation
+-----------------------------
+
+For interactive testing and exploration of the API endpoints, use the automatically generated documentation:
+
+* **Swagger UI**: :swagger:`/ <docs>` - Interactive API documentation with request/response examples
+* **ReDoc**: :redoc:`/ <redoc>` - Clean, responsive API documentation
+
+.. note::
+   The interactive documentation is automatically generated from the FastAPI application and is always up-to-date with the current API implementation.
+
 Main Application
 ----------------
 
@@ -65,14 +76,6 @@ Database Service
    :undoc-members:
    :show-inheritance:
 
-Dataset Builder
-~~~~~~~~~~~~~~~
-
-.. automodule:: app.services.dataset_builder
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 iNaturalist Fetcher
 ~~~~~~~~~~~~~~~~~~~
 
@@ -85,68 +88,6 @@ NASA Fetcher
 ~~~~~~~~~~~~
 
 .. automodule:: app.services.nasa_fetcher
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Utilities
-~~~~~~~~~
-
-.. automodule:: app.services.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Data Models
------------
-
-Dataset Models
-~~~~~~~~~~~~~~
-
-.. automodule:: app.models.dataset
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Observation Models
-~~~~~~~~~~~~~~~~~~
-
-.. automodule:: app.models.observation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Weather Models
-~~~~~~~~~~~~~~
-
-.. automodule:: app.models.weather
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Data Schemas
-------------
-
-Dataset Schemas
-~~~~~~~~~~~~~~~
-
-.. automodule:: app.schemas.dataset
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Observation Schemas
-~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: app.schemas.observation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Weather Schemas
-~~~~~~~~~~~~~~~
-
-.. automodule:: app.schemas.weather
    :members:
    :undoc-members:
    :show-inheritance:

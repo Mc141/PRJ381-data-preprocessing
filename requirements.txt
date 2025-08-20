@@ -168,3 +168,8 @@ zipp==3.21.0
 sphinx==8.2.3
 sphinx-rtd-theme==3.0.2
 sphinx-autodoc-typehints==2.6.0
+
+# Geospatial and visualization for predictions
+folium==0.18.0
+numpy==1.26.4
+geopy==2.4.1
