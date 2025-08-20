@@ -1,6 +1,6 @@
 # PRJ381 Documentation Strategy & Guide
 
-This document serves as both a qui- Status checking**: Verifies both Sphinx and FastAPI documentation
+This document serves as both a qui-**Status checking**: Verifies both Sphinx and FastAPI documentation
 - **Flexible options**: Multiple build and serve configurations
 
 ## Documentation Types
