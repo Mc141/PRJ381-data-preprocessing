@@ -18,12 +18,12 @@ Documentation Types
 
 This project provides multiple types of documentation to serve different needs:
 
-**For API Users** 📚
+**For API Users**
    * **Interactive API Documentation**: :swagger:`Swagger UI </docs>` - Test endpoints directly in your browser
    * **Alternative API Documentation**: :redoc:`ReDoc </redoc>` - Clean, responsive API reference
    * **User Guide**: :doc:`user_guide` - Step-by-step usage examples
 
-**For Developers** 🔧
+**For Developers**
    * **API Reference**: :doc:`api_reference` - Complete code documentation  
    * **Architecture Guide**: :doc:`architecture` - System design and components
    * **Testing Guide**: :doc:`testing` - Testing strategies and examples

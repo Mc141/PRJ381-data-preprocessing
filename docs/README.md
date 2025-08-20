@@ -83,7 +83,7 @@ python build_docs.py --serve --port 9000
 - **Status checking**: Verifies both Sphinx and FastAPI documentation
 - **Flexible options**: Multiple build and serve configurations
 
-## 📖 Documentation Types
+## Documentation Types
 
 ### Interactive API Documentation
 - **Swagger UI**: http://localhost:8000/docs
