@@ -52,7 +52,6 @@ Thumbs.db
 
 # Data outputs
 data/
-outputs/
 *.csv
 *.json
 *.db
