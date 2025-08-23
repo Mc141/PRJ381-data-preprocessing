@@ -1,0 +1,107 @@
+{
+  "model_type": "Seasonal Pyracantha Predictor",
+  "training_date": "2025-08-23T02:54:03.654196",
+  "performance": {
+    "accuracy": 0.49559126493613515,
+    "auc_score": 0.539615084357084
+  },
+  "seasonal_insights": {
+    "obs_by_month": {
+      "1.0": 1,
+      "2.0": 2,
+      "3.0": 1,
+      "4.0": 19,
+      "5.0": 11,
+      "6.0": 4,
+      "7.0": 2,
+      "8.0": 1,
+      "9.0": 1,
+      "10.0": 1,
+      "11.0": 2,
+      "12.0": 2
+    },
+    "obs_by_season": {
+      "Autumn": 31,
+      "Spring": 4,
+      "Summer": 5,
+      "Winter": 7
+    },
+    "recent_by_season": {
+      "Autumn": 8,
+      "Spring": 2,
+      "Summer": 2,
+      "Winter": 1
+    },
+    "peak_months": [
+      4.0,
+      5.0,
+      6.0
+    ],
+    "peak_season": "Autumn",
+    "total_unique_obs": 47,
+    "peak_season_percentage": 65.95744680851064
+  },
+  "top_features": [
+    {
+      "feature": "longitude_x",
+      "importance": 0.3388506839911201
+    },
+    {
+      "feature": "latitude_x",
+      "importance": 0.24258451057874275
+    },
+    {
+      "feature": "flowering_intensity",
+      "importance": 0.043178057443570415
+    },
+    {
+      "feature": "optimal_season_weight",
+      "importance": 0.0324302922629218
+    },
+    {
+      "feature": "T2M",
+      "importance": 0.024558530140790708
+    },
+    {
+      "feature": "WS2M",
+      "importance": 0.02379046335686854
+    },
+    {
+      "feature": "days_to_observation",
+      "importance": 0.020961851181109454
+    },
+    {
+      "feature": "TS",
+      "importance": 0.02001053901241365
+    },
+    {
+      "feature": "day_of_year",
+      "importance": 0.017546196585213534
+    },
+    {
+      "feature": "T2M_MAX",
+      "importance": 0.016718430829107005
+    },
+    {
+      "feature": "CLRSKY_SFC_SW_DWN",
+      "importance": 0.015898348171976717
+    },
+    {
+      "feature": "distance_from_peak",
+      "importance": 0.015596816675843794
+    },
+    {
+      "feature": "T2M_MIN",
+      "importance": 0.015545939104162024
+    },
+    {
+      "feature": "is_peak_season",
+      "importance": 0.014866371581715917
+    },
+    {
+      "feature": "ALLSKY_SFC_SW_DWN",
+      "importance": 0.014122305016185095
+    }
+  ],
+  "feature_count": 71
+}

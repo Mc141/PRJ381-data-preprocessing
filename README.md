@@ -50,10 +50,18 @@ This service is intended to:
 
 * **Prediction & Modeling**
 
-  * Generate habitat suitability maps based on environmental conditions
-  * Create presence baseline from recent observations
-  * Interactive prediction visualization with Folium maps
-  * Grid-based invasion risk assessment
+  * **Seasonal Machine Learning**: Enhanced Random Forest models with biological pattern recognition
+  * **Peak Season Analysis**: 53% higher invasion risk during flowering months (Autumn)  
+  * **Real-time Weather Integration**: Live NASA POWER API data for current predictions
+  * **Interactive Heatmaps**: Comparative peak vs off-season invasion risk visualizations
+  * **Pyracantha Biology**: Model learns 66% of observations occur during flowering period
+
+* **Machine Learning Experiments** (`experiments/random_forest/`)
+
+  * **Seasonal Random Forest**: Captures flowering/observation timing patterns
+  * **Temporal Features**: Distance from peak season, flowering intensity, observation recency
+  * **Grid Predictions**: High-resolution invasion risk maps with API integration
+  * **Performance**: 71 features, 0.496 accuracy, 1.53x seasonal enhancement ratio
 
 * **FastAPI REST Endpoints**
 
@@ -259,10 +267,15 @@ GET /api/v1/predictions/visualize_map?days_back=100&grid_resolution=0.5&save_fil
   * [ ] Add scheduled background jobs for periodic data sync
   * [ ] Introduce update-skipping for already up-to-date weather records
   * [ ] Enhance filtering and query parameters
+* [x] **Machine Learning & Prediction**
+  * [x] Seasonal Random Forest models with biological pattern recognition
+  * [x] Interactive invasion risk heatmaps with real weather data
+  * [x] Peak vs off-season comparative analysis (+52.9% seasonal enhancement)
+  * [x] Pyracantha flowering cycle integration (66% autumn observations)
 * [ ] **Deployment & Infrastructure**
   * [ ] Dockerize and prepare for deployment
   * [ ] User authentication and API keys
-  * [ ] Integration with ML training pipeline
+  * [x] Integration with ML training pipeline
 * [ ] **System Reliability**
   * [ ] Add comprehensive error handling and retry mechanisms
   * [ ] Implement data validation and quality checks

@@ -50,12 +50,12 @@ Thumbs.db
 *.tmp
 *.swp
 
-# Data outputs
-data/
-*.csv
-*.json
-*.db
-*.sqlite3
+# # Data outputs
+# data/
+# *.csv
+# *.json
+# *.db
+# *.sqlite3
 
 # Docker volumes and build artifacts
 docker-compose.override.yml
