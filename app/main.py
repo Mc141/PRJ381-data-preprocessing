@@ -2,7 +2,7 @@
 PRJ381 Species Distribution Modeling & Transfer Learning API
 ===========================================================
 
-⚠️ **DATA INTEGRITY POLICY**: 
+**DATA INTEGRITY POLICY**: 
 - **REAL DATA ONLY** - No fake, dummy, or placeholder environmental values
 - **Missing = NaN** - When data unavailable, returns None/NaN (never fake values)
 - **Transparent Sources** - All data sources clearly labeled and trackable
@@ -11,19 +11,19 @@ A comprehensive FastAPI application for creating machine learning datasets from 
 biodiversity observations, enriched with real environmental data for species distribution 
 modeling and invasion risk assessment.
 
-🎯 MAIN WORKFLOW:
+MAIN WORKFLOW:
 1. Data Collection: Fetch global species occurrences from GBIF
 2. Environmental Enrichment: Add WorldClim climate & SRTM elevation data  
 3. Dataset Creation: Build ML-ready datasets for transfer learning
 4. Model Training: Export data for Random Forest/ML model training
 5. Prediction & Mapping: Generate invasion risk predictions and visualizations
 
-🗂️ API ORGANIZATION:
+API ORGANIZATION:
 - Core Pipeline: GBIF → Environmental → Datasets → ML Export
 - Data Management: Status monitoring, data validation, cleanup
 - Legacy/Utilities: Deprecated endpoints, development tools
 
-📊 DEPENDENCIES FLOW:
+DEPENDENCIES FLOW:
 /status → /gbif → /worldclim → /datasets → /predictions
 
 Author: MC141

@@ -1,17 +1,26 @@
 # PRJ381 Data Preprocessing - GBIF Transfer Learning Pipeline
 
-**Status:** ✅ Production Ready
+**Status:** Production Ready
 
 A comprehensive FastAPI service for preprocessing global invasive species data using GBIF occurrence records. Designed for **transfer learning** applications where models are trained on worldwide distribution patterns and validated on local South African data.
 
-🌍 **Global Scale**: Process ~3,300 worldwide _Pyracantha angustifolia_ (Franch.) C.K.Schneid. occurrences  
-🇿🇦 **Local Validation**: South African subset for model validation  
-🌡️ **Environmental Enrichment**: WorldClim climate variables + NASA weather data  
-📊 **ML-Ready**: 17 standardized features for machine learning
+**Global Scale**: Process ~3,300 worldwide _Pyracantha angustifolia_ (Franch.) C.K.Schneid. occurrences  
+**Local- **Deployment\*\*: Docker containerization and cloud deployment
+
+- **Monitoring**: System health monitoring and performance alerts
+
+### **Research Opportunities**
+
+- **Climate Change**: Future climate scenario modeling
+- **Ensemble Methods**: Multiple ML model comparison and ensembling
+- **Uncertainty Quantification**: Prediction confidence intervals
+- **Temporal Dynamics**: Species spread pattern analysis over timeon**: South African subset for model validation  
+  **Environmental Enrichment**: WorldClim climate variables + NASA weather data  
+  **ML-Ready\*\*: 17 standardized features for machine learning
 
 ---
 
-## 🎯 Project Overview
+## Project Overview
 
 This service provides:
 
@@ -30,7 +39,7 @@ This service provides:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 **Core Components:**
 
@@ -50,7 +59,7 @@ This service provides:
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### **1. Environment Setup**
 
@@ -89,15 +98,15 @@ curl "http://localhost:8000/api/v1/datasets/export-ml-ready?dataset_type=local_v
 
 ---
 
-## 📊 ML Features (17 Total)
+## ML Features (17 Total)
 
-### **📍 Location Variables (3)**
+### **Location Variables (3)**
 
 - `latitude` - Decimal degrees north (WGS84)
 - `longitude` - Decimal degrees east (WGS84)
 - `elevation` - Meters above sea level (SRTM 30m)
 
-### **🌡️ Climate Variables (8)**
+### **Climate Variables (8)**
 
 - `bio1` - Annual Mean Temperature (°C)
 - `bio4` - Temperature Seasonality (std dev × 100)
@@ -115,23 +124,23 @@ curl "http://localhost:8000/api/v1/datasets/export-ml-ready?dataset_type=local_v
 - `sin_month` - Cyclic encoding: sin(2π × (month-1)/12)
 - `cos_month` - Cyclic encoding: cos(2π × (month-1)/12)
 
-### **🏔️ Topographic (2)**
+### **Topographic (2)**
 
 - `slope` - Slope angle in degrees (0-90)
 - `aspect` - Slope direction in degrees (0-360)
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### **🌍 Global GBIF Integration**
+### **Global GBIF Integration**
 
 - Async retrieval of worldwide _Pyracantha angustifolia_ occurrences (~3.3K records)
 - Quality filtering for coordinate accuracy and data validity
 - Batch processing with progress tracking for large datasets
 - Species key lookup and taxonomic validation
 
-### **🌡️ Environmental Enrichment**
+### **Environmental Enrichment**
 
 - WorldClim 2.1 bioclimatic variables (19 variables available)
 - SRTM 30m elevation data via Open-Topo-Data API
@@ -139,21 +148,21 @@ curl "http://localhost:8000/api/v1/datasets/export-ml-ready?dataset_type=local_v
 - Coordinate-based environmental data extraction
 - Caching for improved performance
 
-### **📊 Transfer Learning Pipeline**
+### **Transfer Learning Pipeline**
 
 - Global training dataset creation with environmental features
 - Local South African validation subset
 - Climate variable comparison and domain shift analysis
 - Standardized 17-feature ML export format
 
-### **⚡ High Performance**
+### **High Performance**
 
 - Async processing for 3.3K+ occurrence records
 - MongoDB for scalable data storage
 - Real-time progress tracking for long operations
 - Background task processing for dataset creation
 
-### **📈 Machine Learning Ready**
+### **Machine Learning Ready**
 
 - Consistent 17-feature export format
 - Cyclic temporal encoding for seasonal patterns
@@ -162,23 +171,23 @@ curl "http://localhost:8000/api/v1/datasets/export-ml-ready?dataset_type=local_v
 
 ---
 
-## 🔗 API Endpoints
+## API Endpoints
 
-### **🌍 GBIF Data Management**
+### **GBIF Data Management**
 
 - `GET /api/v1/gbif/global-occurrences` - Retrieve global Pyracantha data
 - `GET /api/v1/gbif/south-africa` - Get South African occurrences
 - `GET /api/v1/gbif/species-lookup` - Species key resolution
 - `GET /api/v1/gbif/environmental-enrichment` - Add climate variables
 
-### **📊 Dataset Creation**
+### **Dataset Creation**
 
 - `GET /api/v1/datasets/merge-global` - Create global training dataset
 - `GET /api/v1/datasets/export-ml-ready` - Export ML-ready CSV/JSON
 - `GET /api/v1/datasets/climate-comparison` - Compare global vs local climate
 - `GET /api/v1/datasets/summary` - Dataset status and statistics
 
-### **🔍 Monitoring & Status**
+### **Monitoring & Status**
 
 - `GET /api/v1/status/health` - System health check
 - `GET /api/v1/datasets/progress/{id}` - Operation progress tracking
@@ -186,7 +195,7 @@ curl "http://localhost:8000/api/v1/datasets/export-ml-ready?dataset_type=local_v
 
 ---
 
-## 🔄 Transfer Learning Workflow
+## Transfer Learning Workflow
 
 ```mermaid
 graph LR
@@ -240,9 +249,9 @@ graph LR
 
 ---
 
-## 📚 Detailed API Reference
+## Detailed API Reference
 
-### **🌍 GBIF Router (`/gbif`)**
+### **GBIF Router (`/gbif`)**
 
 | Method | Endpoint                         | Description                                                   |
 | ------ | -------------------------------- | ------------------------------------------------------------- |
@@ -253,7 +262,7 @@ graph LR
 
 ---
 
-### **📊 Datasets Router (`/datasets`)**
+### **Datasets Router (`/datasets`)**
 
 | Method | Endpoint                       | Description                                                   |
 | ------ | ------------------------------ | ------------------------------------------------------------- |
@@ -265,7 +274,7 @@ graph LR
 
 ---
 
-### **🌡️ Environmental Data Router (`/worldclim`)**
+### **Environmental Data Router (`/worldclim`)**
 
 | Method | Endpoint                   | Description                                      |
 | ------ | -------------------------- | ------------------------------------------------ |
@@ -277,7 +286,7 @@ graph LR
 
 ---
 
-### **🌡️ Weather Router (`/weather`)**
+### **Weather Router (`/weather`)**
 
 | Method   | Endpoint          | Description                                                  |
 | -------- | ----------------- | ------------------------------------------------------------ |
@@ -451,37 +460,37 @@ GET /api/v1/predictions/visualize_map?save_file=true
 
 ---
 
-## 🚀 Future Development
+## Future Development
 
-### **🎯 Completed Features**
+### **Completed Features**
 
-- ✅ **GBIF Integration**: Global Pyracantha data pipeline (~3.3K records)
-- ✅ **Transfer Learning**: Global training + local validation datasets
-- ✅ **ML Export**: Standardized 17-feature format for model training
-- ✅ **Environmental Enrichment**: WorldClim 2.1 bioclimatic variables
-- ✅ **Documentation**: Comprehensive Sphinx + FastAPI documentation
-- ✅ **Performance**: Async processing for large-scale data operations
+- **GBIF Integration**: Global Pyracantha data pipeline (~3.3K records)
+- **Transfer Learning**: Global training + local validation datasets
+- **ML Export**: Standardized 17-feature format for model training
+- **Environmental Enrichment**: WorldClim 2.1 bioclimatic variables
+- **Documentation**: Comprehensive Sphinx + FastAPI documentation
+- **Performance**: Async processing for large-scale data operations
 
-### **🔄 Active Development**
+### **Active Development**
 
-- 🔲 **Model Training Pipeline**: Automated global model training workflow
-- 🔲 **Domain Adaptation**: Advanced techniques for local climate adaptation
-- 🔲 **Real-time Predictions**: Live invasion risk assessment API
-- 🔲 **Background Processing**: Scheduled GBIF data updates and enrichment
+- **Model Training Pipeline**: Automated global model training workflow
+- **Domain Adaptation**: Advanced techniques for local climate adaptation
+- **Real-time Predictions**: Live invasion risk assessment API
+- **Background Processing**: Scheduled GBIF data updates and enrichment
 
-### **📈 Planned Enhancements**
+### **Planned Enhancements**
 
-- 🔲 **Multi-species Support**: Extend to other invasive plant species
-- 🔲 **Advanced Features**: Soil data, vegetation indices, human activity metrics
-- 🔲 **Deployment**: Docker containerization and cloud deployment
-- 🔲 **Monitoring**: System health monitoring and performance alerts
+- **Multi-species Support**: Extend to other invasive plant species
+- **Advanced Features**: Soil data, vegetation indices, human activity metrics
+- **Deployment**: Docker containerization and cloud deployment
+- **Monitoring**: System health monitoring and performance alerts
 
-### **🔬 Research Extensions**
+### **Research Extensions**
 
-- 🔲 **Climate Change**: Future climate scenario modeling
-- 🔲 **Ensemble Methods**: Multiple ML model comparison and ensembling
-- 🔲 **Uncertainty Quantification**: Prediction confidence intervals
-- 🔲 **Temporal Dynamics**: Species spread pattern analysis over time
+- **Climate Change**: Future climate scenario modeling
+- **Ensemble Methods**: Multiple ML model comparison and ensembling
+- **Uncertainty Quantification**: Prediction confidence intervals
+- **Temporal Dynamics**: Species spread pattern analysis over time
 
 ---
 

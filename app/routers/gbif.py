@@ -66,27 +66,27 @@ async def progress_callback(operation_id: str, current: int, total: int, percent
     }
 
 @router.get("/gbif/occurrences", 
-           summary="🌍 Fetch Global Species Occurrences",
+           summary="Fetch Global Species Occurrences",
            description="""
 **STEP 2 of ML Pipeline** - Collect global biodiversity data
 
-### 📋 Prerequisites:
+### Prerequisites:
 1. **System Health**: Verify `/status/health` shows database connectivity
 2. **Network Access**: Ensure GBIF API is accessible
 
-### 🎯 What This Does:
+### What This Does:
 - Fetches **~1,700+ global Pyracantha angustifolia occurrences** from GBIF
 - Applies **quality filters** for coordinate accuracy and data reliability
 - **Stores in MongoDB** for fast processing and reuse
 - **Progress tracking** for long-running operations
 
-### 🔍 Data Quality Filters:
+### Data Quality Filters:
 - Valid coordinates (latitude/longitude)
 - No coordinate uncertainty issues
 - Recent observations (species presence confirmed)
 - Taxonomically verified records
 
-### ⚡ Performance:
+### Performance:
 - Fetch time: ~2-3 minutes for full dataset
 - Storage: ~15MB in MongoDB
 - Network usage: ~10MB download from GBIF
@@ -95,7 +95,7 @@ async def progress_callback(operation_id: str, current: int, total: int, percent
 1. Run `/worldclim/ensure-data` to download climate data
 2. Then use `/datasets/merge-global` to create training dataset
 
-### ⚠️ Important:
+### Important:
 **ALWAYS use `store_in_db=true`** - Required for dataset creation pipeline!
            """,
            response_model=Dict[str, Any])

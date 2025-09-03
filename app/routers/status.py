@@ -19,13 +19,13 @@ async def health_check():
     """
     🏥 **STEP 1: START HERE** - Complete system health check
     
-    ### 🔍 What This Checks:
+    ### What This Checks:
     - **Database connectivity** (MongoDB status)
     - **API responsiveness** (FastAPI health)  
     - **Required services** (GBIF, WorldClim, NASA APIs)
     - **Storage space** for data downloads
     
-    ### ✅ Green Light Means:
+    ### Green Light Means:
     - System ready for data collection
     - Database accepting connections  
     - All dependencies operational
@@ -81,11 +81,11 @@ async def service_info():
 
 
 @router.get("/status/data-integrity",
-           summary="🔍 Data Integrity Verification",
+           summary="Data Integrity Verification",
            description="""
 **CRITICAL DATA POLICY CHECK** - Verify system data integrity policy
 
-⚠️ **ZERO TOLERANCE FOR FAKE DATA**:
+**ZERO TOLERANCE FOR FAKE DATA**:
 - Real environmental data OR clear NaN values
 - NO synthetic, dummy, or placeholder values
 - Transparent data source tracking
@@ -95,11 +95,11 @@ This endpoint performs comprehensive checks to ensure the system never
 provides misleading fake data when real data isn't available.
 
 ### What Gets Verified:
-✅ WorldClim real data extraction  
-✅ Missing data properly marked as NaN  
-✅ No dummy/fake environmental values  
-✅ Clear data source labeling  
-✅ Error handling returns NaN (not fake data)
+- WorldClim real data extraction  
+- Missing data properly marked as NaN  
+- No dummy/fake environmental values  
+- Clear data source labeling  
+- Error handling returns NaN (not fake data)
 
 ### Data Integrity Guarantee:
 If this endpoint passes, the system will NEVER provide fake environmental 
@@ -168,7 +168,7 @@ async def verify_data_integrity() -> Dict[str, Any]:
         integrity_score = passed_tests / total_tests if total_tests > 0 else 0
         
         return {
-            "data_integrity_status": "✅ PASSED" if integrity_score >= 0.8 else "❌ FAILED",
+            "data_integrity_status": "PASSED" if integrity_score >= 0.8 else "FAILED",
             "integrity_score": f"{integrity_score:.2%}",
             "policy": "ZERO TOLERANCE FOR FAKE DATA",
             "guarantee": "Real data OR clear NaN - NEVER fake/dummy values",
@@ -183,7 +183,7 @@ async def verify_data_integrity() -> Dict[str, Any]:
         
     except Exception as e:
         return {
-            "data_integrity_status": "❌ ERROR",
+            "data_integrity_status": "ERROR",
             "error": str(e),
             "policy": "ZERO TOLERANCE FOR FAKE DATA",
             "verification_timestamp": datetime.utcnow().isoformat()
@@ -191,23 +191,23 @@ async def verify_data_integrity() -> Dict[str, Any]:
 
 
 @router.get("/status/pipeline-readiness",
-           summary="🔍 Pipeline Readiness Check",
+           summary="Pipeline Readiness Check",
            description="""
 **Validate Complete ML Pipeline Status**
 
-### 🎯 What This Checks:
+### What This Checks:
 - **GBIF Data**: Species occurrences stored in database
 - **WorldClim Data**: Climate data downloaded and ready  
 - **Training Dataset**: Enriched dataset created and validated
 - **Export Readiness**: ML-ready format availability
 
-### ✅ Readiness Indicators:
+### Readiness Indicators:
 - **Data Collection**: GBIF records count and quality
 - **Environmental Data**: WorldClim files and extraction capability
 - **Dataset Status**: Training/validation dataset completeness  
 - **ML Export**: Feature validation and export options
 
-### 🚀 Go/No-Go Decision:
+### Go/No-Go Decision:
 Get clear status on whether your pipeline is ready for ML model training.
            """)
 async def check_pipeline_readiness():

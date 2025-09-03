@@ -52,22 +52,22 @@ async def dataset_progress_callback(operation_id: str, current: int, total: int,
     }
 
 @router.get("/datasets/merge-global",
-           summary="🔄 Create Global Training Dataset",
+           summary="Create Global Training Dataset",
            description="""
 **STEP 4 of ML Pipeline** - Create enriched global training dataset
 
-### 📋 Prerequisites:
+### Prerequisites:
 1. **GBIF Data**: Run `/gbif/occurrences?store_in_db=true` first
 2. **Climate Data**: Run `/worldclim/ensure-data` to download WorldClim data
 3. **System Health**: Verify `/status/health` shows all systems operational
 
-### 🎯 What This Does:
+### What This Does:
 - Merges global GBIF occurrences with real WorldClim climate variables
 - Adds optional NASA POWER weather data for temporal features  
 - Creates ML-ready dataset with ~1,700+ enriched records
 - Stores results in MongoDB for fast export
 
-### ⚡ Performance:
+### Performance:
 - Processing time: ~2-5 minutes for full dataset
 - Memory usage: ~100MB for climate data extraction
 - Output: Global training dataset ready for ML export
@@ -692,35 +692,35 @@ def process_weather_features(weather_data: List[Dict[str, Any]], observation_dat
            description="""
 **STEP 5 of ML Pipeline** - Export dataset for Random Forest and ML training
 
-### 📋 Prerequisites:
+### Prerequisites:
 1. **Training Dataset**: Run `/datasets/merge-global` first to create enriched dataset
 2. **Verify Data**: Check `/datasets/summary` to confirm dataset ready for export
 
-### 🎯 What This Exports:
+### What This Exports:
 - **Exactly 17 Features** optimized for Random Forest models
 - **Real Environmental Data** from WorldClim v2.1 (no placeholders!)
 - **Temporal Features** for seasonal modeling
 - **Clean Data** with proper NaN handling and validation
 
-### 📊 Feature Set (17 total):
+### Feature Set (17 total):
 - **Location (3)**: latitude, longitude, elevation  
 - **Climate (8)**: bio1, bio4, bio5, bio6, bio12, bio13, bio14, bio15
 - **Temporal (4)**: month, day_of_year, sin_month, cos_month
 - **Optional (2)**: slope, aspect (topographic features)
 
-### 🔄 Export Options:
+### Export Options:
 - **CSV**: Direct import into scikit-learn, pandas
 - **JSON**: Structured data for web applications
 - **Global Training**: ~1,700+ worldwide records
 - **Local Validation**: ~260+ regional records
 
-### ✅ Data Quality:
+### Data Quality:
 - All bio variables contain **real WorldClim v2.1 data** 
 - Data source tracked in metadata
 - No placeholder or fake values
 - Scientific-grade environmental variables
 
-### 🚀 Model Training Ready:
+### Model Training Ready:
 Perfect for Random Forest, XGBoost, Neural Networks, and other ML algorithms.
            """,
            response_model=Dict[str, Any],

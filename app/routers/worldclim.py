@@ -76,27 +76,27 @@ async def get_worldclim_status() -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"Failed to get service status: {str(e)}")
 
 @router.post("/worldclim/ensure-data",
-            summary="🌡️ Download Real WorldClim Data",
+            summary="Download Real WorldClim Data",
             description="""
 **STEP 3 of ML Pipeline** - Download authentic climate data
 
-### 📋 Prerequisites:
+### Prerequisites:
 1. **Storage Space**: Ensure ~900MB free disk space
 2. **Network Access**: Stable internet connection for download
 
-### 🎯 What This Downloads:
+### What This Downloads:
 - **WorldClim v2.1 Bioclimate Variables** (19 raster files)
 - **10-minute resolution** (~18.5km spatial resolution)
 - **Scientific-grade data** used by researchers worldwide
 - **Real climate data** - NO placeholders or fake values!
 
-### 📊 Data Details:
+### Data Details:
 - **Source**: WorldClim v2.1 (Fick & Hijmans, 2017)
 - **Variables**: bio1-bio19 (temperature, precipitation, seasonality)
 - **Coverage**: Global terrestrial areas
 - **Format**: GeoTIFF raster files for precise coordinate extraction
 
-### ⚡ Performance:
+### Performance:
 - **Download size**: ~900MB compressed, ~52MB extracted
 - **Download time**: 2-5 minutes (depending on connection)
 - **Storage location**: `data/worldclim/wc2.1_10m_bio/`
@@ -104,7 +104,7 @@ async def get_worldclim_status() -> Dict[str, Any]:
 ### 🔗 Next Steps:
 After download, use `/datasets/merge-global` to enrich species data with real climate variables.
 
-### ✅ Quality Guarantee:
+### Quality Guarantee:
 This downloads the SAME data used in thousands of published scientific studies!
             """,
             response_model=Dict[str, Any])
