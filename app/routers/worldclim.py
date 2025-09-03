@@ -17,6 +17,13 @@ from app.services.worldclim_extractor import get_worldclim_extractor
 from app.services.worldclim_extractor import extract_climate_data as extract_climate_service
 from app.services.worldclim_extractor import extract_climate_batch as extract_climate_batch_service
 
+# Import elevation service
+try:
+    from app.services.elevation_extractor import get_elevation_extractor, extract_elevation_data
+    ELEVATION_AVAILABLE = True
+except ImportError:
+    ELEVATION_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,9 +49,21 @@ async def get_worldclim_status() -> Dict[str, Any]:
         extractor = get_worldclim_extractor()
         status = extractor.get_service_status()
         
+        # Add elevation service status if available
+        if ELEVATION_AVAILABLE:
+            try:
+                elevation_extractor = get_elevation_extractor()
+                elevation_status = elevation_extractor.get_service_status()
+                status["elevation_service"] = elevation_status
+            except Exception as e:
+                logger.warning(f"Error getting elevation status: {e}")
+                status["elevation_service"] = {"status": "error", "error": str(e)}
+        else:
+            status["elevation_service"] = {"status": "not_available", "message": "Elevation service not imported"}
+        
         # Add API-specific information
         status.update({
-            "api_version": "1.0",
+            "api_version": "1.0", 
             "endpoint_base": "/api/v1/worldclim",
             "timestamp": datetime.utcnow().isoformat(),
             "data_size_estimate": "~900MB for full resolution data"
@@ -270,74 +289,6 @@ async def extract_climate_data_batch(
         logger.error(f"Error in batch climate extraction: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to extract batch climate data: {str(e)}")
 
-@router.get("/worldclim/test",
-           summary="Test WorldClim Service",
-           description="Test WorldClim service with sample coordinates",
-           response_model=Dict[str, Any])
-async def test_worldclim_extractor() -> Dict[str, Any]:
-    """
-    Test the WorldClim service with known coordinates.
-    
-    Tests extraction for several global locations to verify
-    the service is working correctly with real data.
-    """
-    try:
-        # Test coordinates - known locations
-        test_coords = [
-            (-33.9249, 18.4241, "Cape Town, South Africa"),
-            (40.7128, -74.0060, "New York, USA"),
-            (51.5074, -0.1278, "London, UK"),
-            (-25.2744, 133.7751, "Alice Springs, Australia"),
-        ]
-        
-        test_results = []
-        
-        for lat, lon, location in test_coords:
-            logger.info(f"Testing {location}")
-            
-            result = await extract_climate_service(lat, lon)
-            
-            # Analyze result
-            data_source = result.get("data_source", "unknown")
-            has_real_data = "real_data" in data_source
-            
-            test_result = {
-                "location": location,
-                "coordinates": {"latitude": lat, "longitude": lon},
-                "has_real_data": has_real_data,
-                "data_source": data_source,
-                "sample_values": {}
-            }
-            
-            # Extract sample values
-            for var in ["bio1", "bio12"]:  # Temperature and precipitation
-                value = result.get(var)
-                if value is not None:
-                    test_result["sample_values"][var] = value
-            
-            test_results.append(test_result)
-        
-        # Calculate overall success
-        successful_tests = sum(1 for r in test_results if r["has_real_data"])
-        
-        return {
-            "test_info": {
-                "endpoint": "/worldclim/test",
-                "timestamp": datetime.utcnow().isoformat(),
-                "test_locations": len(test_coords)
-            },
-            "results": test_results,
-            "summary": {
-                "successful_extractions": successful_tests,
-                "total_tests": len(test_coords),
-                "success_rate": f"{successful_tests/len(test_coords)*100:.1f}%",
-                "service_status": "working" if successful_tests > 0 else "needs_attention"
-            }
-        }
-    
-    except Exception as e:
-        logger.error(f"Error testing WorldClim service: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to test service: {str(e)}")
 
 @router.get("/worldclim/variables",
            summary="Get Available Variables",

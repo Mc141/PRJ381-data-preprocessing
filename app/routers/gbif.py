@@ -50,6 +50,7 @@ class OccurrenceFilters(BaseModel):
 class EnrichmentRequest(BaseModel):
     """Request model for environmental enrichment."""
     climate_variables: Optional[List[str]] = Field(None, description="Climate variables to extract (bio1, bio5, etc.)")
+    include_elevation: bool = Field(True, description="Include SRTM elevation data")
     batch_size: int = Field(20, description="Batch size for processing")
 
 # Progress tracking for long-running operations
@@ -409,6 +410,7 @@ async def enrich_with_environmental_data(
             run_environmental_enrichment,
             occurrences,
             enrichment_request.climate_variables,
+            enrichment_request.include_elevation,
             enrichment_request.batch_size,
             target_collection,
             operation_id
@@ -473,6 +475,7 @@ async def store_gbif_data(occurrences: List[Dict[str, Any]], collection_name: st
 
 async def run_environmental_enrichment(occurrences: List[Dict[str, Any]], 
                                      climate_variables: Optional[List[str]],
+                                     include_elevation: bool,
                                      batch_size: int,
                                      target_collection: str,
                                      operation_id: str):
@@ -486,6 +489,7 @@ async def run_environmental_enrichment(occurrences: List[Dict[str, Any]],
         enriched_data = await enrich_gbif_occurrences(
             occurrences,
             climate_variables,
+            include_elevation,
             progress_func
         )
         

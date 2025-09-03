@@ -144,6 +144,16 @@ Unified service for WorldClim data operations and environmental data extraction.
    :undoc-members:
    :show-inheritance:
 
+Elevation Extractor Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SRTM elevation data extraction via Open-Topo-Data API.
+
+.. automodule:: app.services.elevation_extractor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 NASA POWER Fetcher
 ~~~~~~~~~~~~~~~~~~
 

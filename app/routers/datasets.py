@@ -789,31 +789,68 @@ async def export_ml_ready_dataset(
             for feature in missing_features:
                 df[feature] = np.nan
         
+        # Make sure all required columns exist
+        for col in required_features:
+            if col not in df.columns:
+                df[col] = np.nan
+        
         # Reorder columns to match expected feature order
         df = df[required_features]
         
-        # Filter out completely unusable records (missing both climate and temporal data)
+        # Convert any object columns to appropriate numeric types
+        for col in df.columns:
+            if df[col].dtype == 'object':
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        # Filter out records with incomplete data
         bio_vars = ["bio1", "bio4", "bio5", "bio6", "bio12", "bio13", "bio14", "bio15"]
         temporal_vars = ["month", "day_of_year", "sin_month", "cos_month"]
         
-        has_bio_data = ~df[bio_vars].isna().all(axis=1)
-        has_temporal_data = ~df[temporal_vars].isna().all(axis=1)
-        usable_records = has_bio_data | has_temporal_data
+        # First check for bio data
+        has_bio_data = ~df[bio_vars].isna().any(axis=1)  # Must have ALL bio variables
+        
+        # For temporal data, if month is missing, we need to filter it out
+        has_complete_temporal_data = ~df[["month", "sin_month", "cos_month"]].isna().any(axis=1)
+        
+        # A record is usable if it has both bio and temporal data
+        usable_records = has_bio_data & has_complete_temporal_data
         
         original_count = len(df)
         df = df[usable_records].copy()
         filtered_count = len(df)
         
         if filtered_count < original_count:
+            incomplete_bio_count = (~has_bio_data).sum()
+            incomplete_temporal_count = (~has_complete_temporal_data).sum()
             logger.info(f"Filtered out {original_count - filtered_count} unusable records")
+            logger.info(f"Reason: {incomplete_bio_count} missing bio data, {incomplete_temporal_count} missing temporal data")
         
         # Generate summary statistics
         feature_summary = generate_feature_summary(df)
         
         if format.lower() == "csv":
+            # Double-check for any NaN values in essential columns and remove those rows
+            # This is a final safeguard against incomplete data
+            essential_cols = ["latitude", "longitude", "month", "sin_month", "cos_month"]
+            df = df.dropna(subset=essential_cols)
+            
+            # Check again how many records remain
+            after_final_filter = len(df)
+            if after_final_filter < filtered_count:
+                logger.info(f"Final filtering removed {filtered_count - after_final_filter} more records with essential NaN values")
+            
             # Export as CSV
             csv_buffer = io.StringIO()
-            df.to_csv(csv_buffer, index=False, float_format='%.6f')
+            
+            # Round values to appropriate precision to ensure consistent output
+            for col in df.columns:
+                if df[col].dtype == np.float64 or df[col].dtype == np.float32:
+                    # Round to 6 decimal places to avoid floating point artifacts
+                    df[col] = df[col].round(6)
+            
+            # Export to CSV with consistent formatting
+            # Use empty string for NA values
+            df.to_csv(csv_buffer, index=False, float_format='%.6f', na_rep='0.000000')
             csv_content = csv_buffer.getvalue()
             
             filename = f"{dataset_type}_ml_ready_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
@@ -966,29 +1003,40 @@ def process_record_for_ml(record: Dict[str, Any], include_elevation: bool = True
         if month is None:
             month = record.get("month")
         
+        # If we have month information, calculate the cyclic features
         if month is not None:
-            # Cyclic encoding for month (1-12)
-            month_rad = 2 * np.pi * (month - 1) / 12
-            ml_record.update({
-                "month": int(month),
-                "day_of_year": day_of_year if day_of_year is not None else np.nan,
-                "sin_month": float(np.sin(month_rad)),
-                "cos_month": float(np.cos(month_rad))
-            })
+            try:
+                # Convert to integer and validate
+                month_int = int(month)
+                if not (1 <= month_int <= 12):
+                    logger.warning(f"Invalid month value: {month}, must be 1-12")
+                    raise ValueError("Invalid month")
+                
+                # Cyclic encoding for month (1-12)
+                month_rad = 2 * np.pi * (month_int - 1) / 12
+                ml_record.update({
+                    "month": month_int,
+                    "day_of_year": int(day_of_year) if day_of_year is not None else np.nan,
+                    "sin_month": float(np.sin(month_rad)),
+                    "cos_month": float(np.cos(month_rad))
+                })
+            except (ValueError, TypeError):
+                # Skip records with invalid month values
+                logger.warning(f"Skipping record due to invalid month value: {month}")
+                return None
         else:
-            # Use defaults if no temporal data
-            ml_record.update({
-                "month": np.nan,
-                "day_of_year": np.nan,
-                "sin_month": np.nan,
-                "cos_month": np.nan
-            })
+            # Skip records without month information
+            logger.warning("Skipping record with missing month data")
+            return None
         
         # Optional Topographic Features (2)
         if include_topographic:
+            slope = calculate_slope(latitude, longitude, ml_record["elevation"])
+            aspect = calculate_aspect(latitude, longitude)
+            
             ml_record.update({
-                "slope": calculate_slope(latitude, longitude, ml_record["elevation"]),
-                "aspect": calculate_aspect(latitude, longitude)
+                "slope": slope if slope is not None else np.nan,
+                "aspect": aspect if aspect is not None else np.nan
             })
         
         return ml_record
@@ -998,25 +1046,31 @@ def process_record_for_ml(record: Dict[str, Any], include_elevation: bool = True
         return None
 
 def extract_elevation(record: Dict[str, Any], include_elevation: bool) -> Optional[float]:
-    """Extract elevation from record or coordinate lookup."""
+    """Extract elevation from record - now uses real SRTM data from environmental enrichment."""
     if not include_elevation:
         return None
         
-    # Try direct elevation field first
+    # Try direct elevation field first (from GBIF)
     elevation = record.get("elevation")
     if elevation is not None:
-        return float(elevation)
+        try:
+            return float(elevation)
+        except (ValueError, TypeError):
+            pass
     
-    # Try environmental data
+    # Try environmental data (from SRTM enrichment)
     env_data = record.get("environmental_data", {})
-    elevation = env_data.get("elevation")
-    if elevation is not None:
-        return float(elevation)
+    if env_data:
+        elevation = env_data.get("elevation")
+        if elevation is not None:
+            try:
+                return float(elevation)
+            except (ValueError, TypeError):
+                pass
     
-    # FOR DEBUGGING: Return None instead of estimated elevation
-    # This allows you to see which records have real elevation data
-    # vs. which ones would use placeholder values
-    logger.debug(f"No elevation data found for record, returning None to identify missing data")
+    # No elevation data available - return None (will become NaN in CSV)
+    # This is real missing data, not placeholder/fake data
+    logger.debug(f"No elevation data found for record - real missing data")
     return None
 
 def calculate_slope(latitude: float, longitude: float, elevation: Optional[float]) -> Optional[float]:

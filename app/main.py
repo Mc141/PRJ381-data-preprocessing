@@ -13,7 +13,7 @@ modeling and invasion risk assessment.
 
 🎯 MAIN WORKFLOW:
 1. Data Collection: Fetch global species occurrences from GBIF
-2. Environmental Enrichment: Add WorldClim climate & NASA weather data  
+2. Environmental Enrichment: Add WorldClim climate & SRTM elevation data  
 3. Dataset Creation: Build ML-ready datasets for transfer learning
 4. Model Training: Export data for Random Forest/ML model training
 5. Prediction & Mapping: Generate invasion risk predictions and visualizations
@@ -116,12 +116,13 @@ Create machine learning datasets from **real global biodiversity data** enriched
 ### DATA SOURCES
 - **Species Data**: GBIF Global Database (1.4+ billion records)
 - **Climate Data**: WorldClim v2.1 (19 bioclimate variables)  
+- **Elevation Data**: SRTM 30m via Open-Topo-Data API
 - **Weather Data**: NASA POWER API (meteorological data)
 - **Taxonomy**: GBIF Taxonomic Backbone
 
 ### ML CAPABILITIES
 - **Transfer Learning**: Global training → Local validation
-- **Environmental Modeling**: 19 climate + weather variables
+- **Environmental Modeling**: 19 climate + elevation + weather variables
 - **Risk Assessment**: Invasion suitability mapping
 - **Model Validation**: Cross-regional performance testing
     """,

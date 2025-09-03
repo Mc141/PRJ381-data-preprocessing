@@ -33,6 +33,14 @@ import os
 
 logger = logging.getLogger(__name__)
 
+# Import elevation extractor for integrated enrichment
+try:
+    from .elevation_extractor import get_elevation_extractor
+    ELEVATION_AVAILABLE = True
+except ImportError:
+    ELEVATION_AVAILABLE = False
+    logger.warning("Elevation extractor not available")
+
 
 class WorldClimDataError(Exception):
     """Custom exception for WorldClim data errors."""
@@ -80,14 +88,22 @@ class WorldClimExtractor:
             data_dir: Directory to store downloaded WorldClim files
             resolution: WorldClim resolution ("10m", "5m", "2.5m", "30s")
         """
-        self.data_dir = data_dir or Path("data/worldclim")
+        if data_dir:
+            self.data_dir = data_dir
+        else:
+            # Get an absolute path relative to the project root
+            project_root = Path(__file__).resolve().parent.parent.parent  # app/services -> app -> project_root
+            self.data_dir = project_root / "data" / "worldclim"
+            
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Using WorldClim data directory: {self.data_dir.resolve()}")
+        
         self.resolution = resolution
         self.session = None
         self.cache = {}  # In-memory cache for performance
         
         # WorldClim download URLs for bioclimate variables
-        self.base_url = "https://biogeo.ucdavis.edu/data/worldclim/v2.1/base"
+        self.base_url = "https://geodata.ucdavis.edu/climate/worldclim/2_1/base/"
         
         logger.info(f"WorldClim extractor initialized - Data dir: {self.data_dir}, Resolution: {self.resolution}")
     
@@ -108,24 +124,36 @@ class WorldClimExtractor:
             await self.session.close()
     
     def get_bio_dir(self) -> Path:
-        """Get the bioclimate data directory."""
-        bio_dir = self.data_dir / f"wc2.1_{self.resolution}_bio"
-        bio_dir.mkdir(parents=True, exist_ok=True)
-        return bio_dir
+        """
+        Get the directory path for WorldClim bio files.
+        
+        Returns:
+            Path: Directory containing WorldClim bioclimate files
+        """
+        # Log the absolute path for debugging
+        absolute_path = self.data_dir.resolve()
+        logger.info(f"Using WorldClim data directory: {absolute_path}")
+        return self.data_dir
     
     def check_files_exist(self) -> bool:
-        """Check if all required WorldClim files exist."""
-        bio_dir = self.get_bio_dir()
-        expected_files = [f"wc2.1_{self.resolution}_bio_{i}.tif" for i in range(1, 20)]
+        """Check if all required WorldClim files exist in the data directory."""
+        bio_dir = self.get_bio_dir()  # Use the same directory as used for downloads
         
+        expected_files = [f"wc2.1_{self.resolution}_bio_{i}.tif" for i in range(1, 20)]
+
         for filename in expected_files:
             file_path = bio_dir / filename
             if not file_path.exists():
-                logger.info(f"Missing file: {filename}")
+                logger.info(f"Missing file: {file_path}")
                 return False
-        
+
         logger.info("All WorldClim files present")
         return True
+
+    
+    
+    
+    
     
     async def download_worldclim_data(self) -> Dict[str, Any]:
         """
@@ -205,7 +233,17 @@ class WorldClimExtractor:
                 "file_size_mb": downloaded / (1024 * 1024)
             }
         else:
-            raise WorldClimDataError("Download completed but files are missing")
+            missing_files = []
+            expected_files = [f"wc2.1_{self.resolution}_bio_{i}.tif" for i in range(1, 20)]
+            for filename in expected_files:
+                file_path = self.data_dir / filename
+                if not file_path.exists():
+                    missing_files.append(str(filename))
+            
+            error_msg = f"Download completed but files are missing: {', '.join(missing_files)}"
+            logger.error(f"Missing files after download: {missing_files}")
+            logger.error(f"Expected in directory: {self.data_dir.resolve()}")
+            raise WorldClimDataError(error_msg)
     
     async def extract_climate_data(self, latitude: float, longitude: float, 
                                  bio_variables: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -355,19 +393,21 @@ class WorldClimExtractor:
     
     async def enrich_gbif_occurrences(self, occurrences: List[Dict[str, Any]],
                                     climate_variables: Optional[List[str]] = None,
+                                    include_elevation: bool = True,
                                     progress_callback: Optional[Callable] = None) -> List[Dict[str, Any]]:
         """
-        Enrich GBIF occurrence records with real climate data.
+        Enrich GBIF occurrence records with real climate and elevation data.
         
         Args:
             occurrences: List of GBIF occurrence records
             climate_variables: Climate variables to extract
+            include_elevation: Whether to include SRTM elevation data
             progress_callback: Progress callback function
             
         Returns:
-            List of enriched occurrence records with real climate data
+            List of enriched occurrence records with real environmental data
         """
-        logger.info(f"Enriching {len(occurrences):,} occurrences with real WorldClim climate data")
+        logger.info(f"Enriching {len(occurrences):,} occurrences with real environmental data")
         
         if not climate_variables:
             climate_variables = ["bio1", "bio4", "bio5", "bio6", "bio12", "bio13", "bio14", "bio15"]
@@ -394,26 +434,58 @@ class WorldClimExtractor:
         logger.info(f"Processing {len(coordinates)} valid coordinates")
         
         # Extract climate data in batch
+        logger.info("Extracting WorldClim climate data...")
         climate_results = await self.extract_climate_batch(coordinates, climate_variables)
         
-        # Merge climate data back with occurrences
+        # Extract elevation data if requested and available
+        elevation_results = []
+        if include_elevation and ELEVATION_AVAILABLE:
+            try:
+                logger.info("Extracting SRTM elevation data...")
+                elevation_extractor = get_elevation_extractor()
+                async with elevation_extractor:
+                    elevation_results = await elevation_extractor.extract_elevation_batch(coordinates)
+            except Exception as e:
+                logger.error(f"Error extracting elevation data: {e}")
+                # Continue without elevation data
+                elevation_results = []
+        elif include_elevation and not ELEVATION_AVAILABLE:
+            logger.warning("Elevation extraction requested but elevation service not available")
+        
+        # Merge environmental data back with occurrences
         for i, occurrence in enumerate(valid_occurrences):
+            env_data = {}
+            
+            # Add climate data
             if i < len(climate_results):
                 climate_data = climate_results[i]
                 
                 # Extract just the climate variables (remove metadata)
-                env_data = {}
                 for var in climate_variables:
                     env_data[var] = climate_data.get(var)
                 
-                occurrence["environmental_data"] = env_data
+                # Add metadata
                 occurrence["data_source"] = climate_data.get("data_source", "unknown")
                 occurrence["extraction_date"] = climate_data.get("extraction_date")
-                
-                if progress_callback:
-                    progress_callback(i + 1, len(valid_occurrences))
+            
+            # Add elevation data if available
+            if i < len(elevation_results):
+                elevation_data = elevation_results[i]
+                env_data["elevation"] = elevation_data.get("elevation")
+                env_data["elevation_source"] = elevation_data.get("data_source", "unknown")
+            
+            occurrence["environmental_data"] = env_data
+            
+            if progress_callback:
+                progress_callback(i + 1, len(valid_occurrences))
         
-        logger.info(f"Successfully enriched {len(valid_occurrences)} occurrences with climate data")
+        data_sources = []
+        if climate_results:
+            data_sources.append("WorldClim climate")
+        if elevation_results:
+            data_sources.append("SRTM elevation")
+            
+        logger.info(f"Successfully enriched {len(valid_occurrences)} occurrences with {', '.join(data_sources)} data")
         return occurrences
     
     def get_service_status(self) -> Dict[str, Any]:
@@ -430,6 +502,17 @@ class WorldClimExtractor:
             tif_files = []
             size_mb = 0
         
+        extraction_capabilities = [
+            "Single coordinate extraction",
+            "Batch coordinate processing", 
+            "GBIF occurrence enrichment",
+            "Real data only (no fake values)"
+        ]
+        
+        # Add elevation capability if available
+        if ELEVATION_AVAILABLE:
+            extraction_capabilities.append("SRTM elevation integration")
+        
         return {
             "service": "WorldClim Data Extractor",
             "version": "v2.1",
@@ -440,12 +523,8 @@ class WorldClimExtractor:
             "data_size_mb": round(size_mb, 2),
             "cache_size": len(self.cache),
             "variables_available": list(range(1, 20)) if files_exist else [],
-            "extraction_capabilities": [
-                "Single coordinate extraction",
-                "Batch coordinate processing", 
-                "GBIF occurrence enrichment",
-                "Real data only (no fake values)"
-            ]
+            "elevation_service": "Available" if ELEVATION_AVAILABLE else "Not available",
+            "extraction_capabilities": extraction_capabilities
         }
 
 
@@ -478,7 +557,8 @@ async def extract_climate_batch(coordinates: List[Tuple[float, float]],
 
 async def enrich_gbif_occurrences(occurrences: List[Dict[str, Any]],
                                  climate_variables: Optional[List[str]] = None,
+                                 include_elevation: bool = True,
                                  progress_callback: Optional[Callable] = None) -> List[Dict[str, Any]]:
-    """Enrich GBIF occurrences with climate data."""
+    """Enrich GBIF occurrences with climate and elevation data."""
     extractor = get_worldclim_extractor()
-    return await extractor.enrich_gbif_occurrences(occurrences, climate_variables, progress_callback)
+    return await extractor.enrich_gbif_occurrences(occurrences, climate_variables, include_elevation, progress_callback)

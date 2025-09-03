@@ -44,6 +44,7 @@ This service provides:
 
 - `gbif_fetcher.py` - Async GBIF API client with batch processing
 - `worldclim_extractor.py` - Environmental data extraction and enrichment
+- `elevation_extractor.py` - SRTM elevation data via Open-Topo-Data API
 - `datasets.py` - Transfer learning dataset creation and ML export
 - `nasa_fetcher.py` - Weather data integration (optional enhancement)
 
@@ -94,7 +95,7 @@ curl "http://localhost:8000/api/v1/datasets/export-ml-ready?dataset_type=local_v
 
 - `latitude` - Decimal degrees north (WGS84)
 - `longitude` - Decimal degrees east (WGS84)
-- `elevation` - Meters above sea level
+- `elevation` - Meters above sea level (SRTM 30m)
 
 ### **🌡️ Climate Variables (8)**
 
@@ -133,6 +134,7 @@ curl "http://localhost:8000/api/v1/datasets/export-ml-ready?dataset_type=local_v
 ### **🌡️ Environmental Enrichment**
 
 - WorldClim 2.1 bioclimatic variables (19 variables available)
+- SRTM 30m elevation data via Open-Topo-Data API
 - NASA POWER weather data integration (optional)
 - Coordinate-based environmental data extraction
 - Caching for improved performance
@@ -260,6 +262,18 @@ graph LR
 | `GET`  | `/datasets/climate-comparison` | Compare global vs South African climate distributions         |
 | `GET`  | `/datasets/summary`            | Get dataset statistics and processing status                  |
 | `GET`  | `/datasets/progress/{id}`      | Track progress of long-running dataset operations             |
+
+---
+
+### **🌡️ Environmental Data Router (`/worldclim`)**
+
+| Method | Endpoint                   | Description                                      |
+| ------ | -------------------------- | ------------------------------------------------ |
+| `GET`  | `/worldclim/status`        | Get WorldClim and elevation service status       |
+| `POST` | `/worldclim/ensure-data`   | Download WorldClim v2.1 bioclimate data (~900MB) |
+| `POST` | `/worldclim/extract`       | Extract climate data for specific coordinates    |
+| `POST` | `/worldclim/extract-batch` | Extract climate data for multiple coordinates    |
+| `GET`  | `/worldclim/variables`     | Get available WorldClim bioclimate variables     |
 
 ---
 
