@@ -230,15 +230,18 @@ async def generate_suitability_map(
                     precips.append(weather["PRECTOTCORR"] * 30)  # Convert daily to monthly
             
             if not temps or not precips:
-                # Use default values if no weather data
-                avg_temp = 18.0  # Cape Town average
-                avg_precip = 50.0  # mm/month
+                # Use NaN values if no weather data to identify missing data
+                avg_temp = float('nan')
+                avg_precip = float('nan')
             else:
-                avg_temp = np.mean(temps)
-                avg_precip = np.mean(precips)
+                avg_temp = float(np.mean(temps))
+                avg_precip = float(np.mean(precips))
             
-            # Calculate base suitability
-            base_suitability = suitability_score(avg_temp, avg_precip)
+            # Calculate base suitability (will be 0 if NaN values)
+            if not (np.isnan(avg_temp) or np.isnan(avg_precip)):
+                base_suitability = suitability_score(avg_temp, avg_precip)
+            else:
+                base_suitability = 0.0
             
             # Calculate distance-weighted probability from observations
             max_probability = 0.0

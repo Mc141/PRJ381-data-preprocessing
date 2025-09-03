@@ -6,8 +6,16 @@ Universal Documentation Builder for PRJ381 Data Preprocessing API
 A cross-platform documentation builder that works on Windows, macOS, and Linux.
 Builds both Sphinx documentation and checks FastAPI server status.
 
-Usage:
-    python build_docs.py [options]
+Usa    except FileNotFoundError as e:
+        print(f"[ERROR] {e}")
+        print("[INFO] Make sure you're running this script from the project directory")
+        return 1
+    except KeyboardInterrupt:
+        print("\n[INFO] Interrupted by user")
+        return 0
+    except Exception as e:
+        print(f"[ERROR] Unexpected error: {e}")
+        return 1ython build_docs.py [options]
 
 Options:
     --serve         Start a local server to view documentation
@@ -64,8 +72,8 @@ def get_project_paths():
 
 def run_command(command, cwd=None, check=True, capture=True):
     """Run a command with cross-platform compatibility."""
-    print(f"🔧 Running: {command}")
-    print(f"📁 In directory: {cwd or 'current'}")
+    print(f"[INFO] Running: {command}")
+    print(f"[INFO] In directory: {cwd or 'current'}")
     
     try:
         # Use shell=True on Windows, False on Unix-like systems for better compatibility
@@ -85,7 +93,7 @@ def run_command(command, cwd=None, check=True, capture=True):
         
         return result
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error running command: {e}")
+        print(f"[ERROR] Error running command: {e}")
         if capture and e.stderr:
             print(f"Error output: {e.stderr}")
         if check:
@@ -95,7 +103,7 @@ def run_command(command, cwd=None, check=True, capture=True):
 
 def check_dependencies():
     """Check and install required dependencies."""
-    print("📦 Checking documentation dependencies...")
+    print("[INFO] Checking documentation dependencies...")
     
     required_packages = [
         "sphinx",
@@ -112,26 +120,26 @@ def check_dependencies():
             missing_packages.append(package)
     
     if missing_packages:
-        print(f"📥 Installing missing packages: {', '.join(missing_packages)}")
+        print(f"[INFO] Installing missing packages: {', '.join(missing_packages)}")
         pip_command = f"{sys.executable} -m pip install {' '.join(missing_packages)}"
         run_command(pip_command)
-        print("✅ Dependencies installed successfully!")
+        print("[SUCCESS] Dependencies installed successfully!")
     else:
-        print("✅ All dependencies are already installed!")
+        print("[SUCCESS] All dependencies are already installed!")
 
 
 def clean_build_directory(build_dir):
     """Clean the build directory."""
     if build_dir.exists():
-        print(f"🧹 Cleaning build directory: {build_dir}")
+        print(f"[INFO] Cleaning build directory: {build_dir}")
         shutil.rmtree(build_dir)
-        print("✅ Build directory cleaned!")
+        print("[SUCCESS] Build directory cleaned!")
 
 
 def build_sphinx_docs(docs_dir, build_dir):
     """Build Sphinx documentation."""
     print("=" * 60)
-    print("📚 Building Sphinx Documentation")
+    print("Building Sphinx Documentation")
     print("=" * 60)
     
     # Ensure build directory parent exists
@@ -142,11 +150,11 @@ def build_sphinx_docs(docs_dir, build_dir):
     
     try:
         run_command(sphinx_command, cwd=docs_dir)
-        print("✅ Sphinx documentation built successfully!")
-        print(f"📁 Location: {build_dir}")
+        print("[SUCCESS] Sphinx documentation built successfully!")
+        print(f"[INFO] Location: {build_dir}")
         return True
     except subprocess.CalledProcessError:
-        print("❌ Failed to build Sphinx documentation")
+        print("[ERROR] Failed to build Sphinx documentation")
         return False
 
 
@@ -182,17 +190,17 @@ def start_docs_server(port, docs_dir):
     
     try:
         with socketserver.TCPServer(("", port), Handler) as httpd:
-            print(f"🌐 Documentation server running at http://localhost:{port}")
-            print("📖 Press Ctrl+C to stop the server")
+            print(f"[INFO] Documentation server running at http://localhost:{port}")
+            print("[INFO] Press Ctrl+C to stop the server")
             httpd.serve_forever()
     except OSError as e:
         if "Address already in use" in str(e):
-            print(f"❌ Port {port} is already in use. Try a different port with --port")
+            print(f"[ERROR] Port {port} is already in use. Try a different port with --port")
         else:
-            print(f"❌ Failed to start server: {e}")
+            print(f"[ERROR] Failed to start server: {e}")
         return False
     except KeyboardInterrupt:
-        print("\n👋 Documentation server stopped")
+        print("\n[INFO] Documentation server stopped")
         return True
 
 
@@ -202,9 +210,9 @@ def open_in_browser(url, delay=2):
         time.sleep(delay)
         try:
             webbrowser.open(url)
-            print(f"🌐 Opened {url} in browser")
+            print(f"[INFO] Opened {url} in browser")
         except Exception as e:
-            print(f"⚠️ Could not open browser: {e}")
+            print(f"[WARNING] Could not open browser: {e}")
     
     Thread(target=open_browser, daemon=True).start()
 
@@ -212,25 +220,25 @@ def open_in_browser(url, delay=2):
 def print_status_summary(paths, fastapi_running, build_success):
     """Print a summary of the documentation status."""
     print("\n" + "=" * 60)
-    print("📋 Documentation Status Summary")
+    print("Documentation Status Summary")
     print("=" * 60)
     
     # Sphinx documentation
     if build_success:
-        print("✅ Sphinx Documentation: Built successfully")
-        print(f"📁 Location: {paths['build_dir']}")
+        print("[SUCCESS] Sphinx Documentation: Built successfully")
+        print(f"[INFO] Location: {paths['build_dir']}")
     else:
-        print("❌ Sphinx Documentation: Build failed")
+        print("[ERROR] Sphinx Documentation: Build failed")
     
     # FastAPI documentation
     if fastapi_running:
-        print("✅ FastAPI Server: Running")
-        print("🌐 Swagger UI: http://localhost:8000/docs")
-        print("📋 ReDoc: http://localhost:8000/redoc")
+        print("[SUCCESS] FastAPI Server: Running")
+        print("[INFO] Swagger UI: http://localhost:8000/docs")
+        print("[INFO] ReDoc: http://localhost:8000/redoc")
     else:
-        print("⚠️ FastAPI Server: Not running")
-        print("💡 To start: uvicorn app.main:app --reload")
-        print("📚 Then access:")
+        print("[WARNING] FastAPI Server: Not running")
+        print("[INFO] To start: uvicorn app.main:app --reload")
+        print("[INFO] Then access:")
         print("   • Swagger UI: http://localhost:8000/docs")
         print("   • ReDoc: http://localhost:8000/redoc")
 
@@ -266,11 +274,11 @@ Examples:
         # Get universal paths
         paths = get_project_paths()
         print(f"🏠 Project root: {paths['project_root']}")
-        print(f"📚 Docs directory: {paths['docs_dir']}")
+        print(f"[INFO] Docs directory: {paths['docs_dir']}")
         
         # Check if docs directory exists
         if not paths["docs_dir"].exists():
-            print(f"❌ Documentation directory not found: {paths['docs_dir']}")
+            print(f"[ERROR] Documentation directory not found: {paths['docs_dir']}")
             return 1
         
         build_success = True
@@ -286,7 +294,7 @@ Examples:
         
         # Check FastAPI server
         print("\n" + "=" * 60)
-        print("🔍 Checking FastAPI Server Status")
+        print("Checking FastAPI Server Status")
         print("=" * 60)
         fastapi_running = check_fastapi_server()
         
@@ -296,11 +304,11 @@ Examples:
         # Serve documentation
         if args.serve:
             if not paths["build_dir"].exists() or not any(paths["build_dir"].iterdir()):
-                print(f"\n❌ No documentation found in {paths['build_dir']}")
-                print("💡 Build documentation first (without --no-sphinx)")
+                print(f"\n[ERROR] No documentation found in {paths['build_dir']}")
+                print("[INFO] Build documentation first (without --no-sphinx)")
                 return 1
             
-            print(f"\n🚀 Starting documentation server on port {args.port}")
+            print(f"\n[INFO] Starting documentation server on port {args.port}")
             
             if args.open:
                 open_in_browser(f"http://localhost:{args.port}")

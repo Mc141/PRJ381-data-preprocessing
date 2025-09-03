@@ -10,6 +10,7 @@ Prerequisites
 * Python 3.11 or higher
 * MongoDB 4.4 or higher
 * Internet connection for API access
+* At least 1GB free disk space for environmental data
 
 Setup Steps
 ~~~~~~~~~~~
@@ -40,13 +41,83 @@ Setup Steps
    * Swagger UI: http://localhost:8000/docs
    * ReDoc: http://localhost:8000/redoc
 
-Basic Usage
------------
+ML Pipeline Workflow
+-------------------
 
-Health Check
-~~~~~~~~~~~~
+The API follows a structured workflow for creating machine learning datasets:
 
-Check if the service is running::
+Step 1: System Health Check
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify system status and dependencies::
+
+    GET /api/v1/status/health
+
+Step 2: Collect Species Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fetch global species occurrence data from GBIF::
+
+    GET /api/v1/gbif/occurrences?store_in_db=true&max_results=2000
+
+This collects ~1,700+ global occurrence records for training.
+
+Step 3: Download Environmental Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download WorldClim v2.1 climate data::
+
+    POST /api/v1/worldclim/ensure-data
+
+Downloads ~900MB of real bioclimate data to your local system.
+
+Step 4: Create Enriched Dataset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Merge species data with environmental variables::
+
+    GET /api/v1/datasets/merge-global?include_nasa_weather=false
+
+This enriches species occurrences with 19 bioclimate variables.
+
+Step 5: Export for ML Training
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Export ML-ready dataset::
+
+    GET /api/v1/datasets/export-ml-ready?dataset_type=global_training&format=csv
+
+Creates a 17-feature dataset optimized for Random Forest and other ML algorithms.
+
+Step 6: Generate Predictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use trained models for invasion risk mapping::
+
+    GET /api/v1/predictions/generate-risk-map
+
+Data Integrity
+--------------
+
+This API maintains strict data quality standards:
+
+Real Data Only
+~~~~~~~~~~~~~
+
+* **No Fake Values**: System never generates dummy or placeholder environmental data
+* **Transparent Sources**: All data sources clearly labeled (WorldClim v2.1, GBIF, NASA POWER)
+* **Missing Data Handling**: Returns None/NaN when data unavailable (never fake values)
+
+Quality Verification
+~~~~~~~~~~~~~~~~~~~
+
+Verify data integrity::
+
+    GET /api/v1/status/data-integrity
+
+This endpoint validates that the system maintains real data standards.
+
+Basic Usage Examples
 
     GET /api/v1/status/health
     GET /api/v1/status/service_info

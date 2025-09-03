@@ -909,7 +909,7 @@ def main():
 
     # Heatmap config — edit as needed
     # Example: use April 15 to reflect peak season, or July 15 for of season
-    prediction_date = "2024-07-15" # 2024-04-15
+    prediction_date = "2024-04-15" # 2024-07-15
     weather_endpoint_url = "http://127.0.0.1:8000/api/v1/weather"
     weather_years_back = 1
     grid_resolution = 0.01
