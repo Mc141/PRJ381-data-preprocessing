@@ -33,6 +33,8 @@ Project: PRJ381 - Invasive Species Distribution Modeling
 from fastapi import FastAPI
 from app.services.database import connect_to_mongo, close_mongo_connection
 from app.routers import observations, weather, datasets, status, predictions, gbif, worldclim
+# Import new routers
+from app.routers import elevation, weather_direct, environmental
 from contextlib import asynccontextmanager  
 
 
@@ -190,6 +192,11 @@ app.include_router(predictions.router, prefix="/api/v1", tags=["6. Predictions &
 
 # UTILITIES & OPTIONAL
 app.include_router(weather.router, prefix="/api/v1", tags=["Weather Data (NASA)"])
+
+# DIRECT ENVIRONMENTAL DATA ACCESS (new endpoints for generate_heatmap.py)
+app.include_router(elevation.router, prefix="/api/v1", tags=["3. Environmental Data"])
+app.include_router(weather_direct.router, prefix="/api/v1", tags=["3. Environmental Data"])
+app.include_router(environmental.router, prefix="/api/v1", tags=["3. Environmental Data"])
 
 # DEPRECATED (moved to bottom of Swagger UI)
 app.include_router(observations.router, prefix="/api/v1", tags=["Legacy (Deprecated)"])

@@ -258,6 +258,10 @@ class WorldClimExtractor:
         Returns:
             Dictionary with extracted climate data or None values if unavailable
         """
+        # Handle case when bio_variables is a comma-separated string
+        if bio_variables and isinstance(bio_variables, str):
+            bio_variables = [f"bio{var.strip()}" for var in bio_variables.split(',')]
+            
         cache_key = f"{latitude:.3f},{longitude:.3f}:{','.join(sorted(bio_variables or []))}"
         
         if cache_key in self.cache:
@@ -284,8 +288,24 @@ class WorldClimExtractor:
         
         try:
             for bio_var in bio_variables:
-                bio_num = int(bio_var.replace("bio", ""))
-                file_path = bio_dir / f"wc2.1_{self.resolution}_bio_{bio_num}.tif"
+                # Handle case when bio_var might not have "bio" prefix
+                processed_var = bio_var
+                if not str(bio_var).startswith("bio"):
+                    processed_var = f"bio{bio_var}"
+                
+                # Handle case when the variable could be a string like "1,4,5,6" instead of "bio1"
+                try:
+                    bio_num_str = processed_var.replace("bio", "")
+                    # Check if it's a comma-separated list
+                    if "," in bio_num_str:
+                        # Just take the first value if it's a comma-separated list
+                        bio_num_str = bio_num_str.split(",")[0]
+                    bio_num = int(bio_num_str)
+                    file_path = bio_dir / f"wc2.1_{self.resolution}_bio_{bio_num}.tif"
+                except ValueError as e:
+                    logger.error(f"Invalid bio variable format: {bio_var}, processed as {processed_var}: {e}")
+                    result[bio_var] = None
+                    continue
                 
                 try:
                     if file_path.exists():
@@ -358,6 +378,10 @@ class WorldClimExtractor:
             List of climate data dictionaries
         """
         logger.info(f"Extracting climate data for {len(coordinates)} coordinates")
+        
+        # Handle case when bio_variables is a comma-separated string
+        if bio_variables and isinstance(bio_variables, str):
+            bio_variables = [f"bio{var.strip()}" for var in bio_variables.split(',')]
         
         if bio_variables is None:
             bio_variables = ["bio1", "bio4", "bio5", "bio6", "bio12", "bio13", "bio14", "bio15"]
