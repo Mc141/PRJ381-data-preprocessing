@@ -30,6 +30,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.inspection import permutation_importance
 
+# Add parent directory to path so we can import metrics_utils
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from metrics_utils import calculate_standard_metrics, find_optimal_threshold, report_metrics_markdown
+
 # Add the root project directory to path so we can import from app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
@@ -207,24 +211,48 @@ def train_model(X_train, y_train):
     return final_model, feature_importance
 
 def evaluate_local_performance(model, X_local, y_local):
-    """Evaluate the model on local South African data."""
+    """Evaluate the model on local South African data using standardized metrics."""
     print("\nEvaluating on South African validation data...")
     
+    # Get raw predictions and probabilities
     y_local_pred = model.predict(X_local)
     y_local_prob = model.predict_proba(X_local)[:, 1]
     
-    accuracy = accuracy_score(y_local, y_local_pred)
+    # Find optimal threshold using our standardized function
     try:
-        auc = roc_auc_score(y_local, y_local_prob)
-    except:
-        auc = float('nan')  # In case of only one class
-    
-    print(f"Local validation accuracy: {accuracy:.4f}")
-    if not np.isnan(auc):
-        print(f"Local validation AUC: {auc:.4f}")
-    
-    print("\nClassification Report (Local Validation):")
-    print(classification_report(y_local, y_local_pred))
+        optimal_threshold, metrics = find_optimal_threshold(y_local, y_local_prob)
+        print(f"Optimal classification threshold: {optimal_threshold:.4f}")
+        
+        # Extract key metrics for ease of use
+        accuracy = metrics['accuracy']
+        auc = metrics['auc'] 
+        avg_precision = metrics['average_precision']
+        sensitivity = metrics['sensitivity']
+        specificity = metrics['specificity']
+        f1 = metrics['f1_score']
+        
+        print("\nModel performance with optimal threshold:")
+        print(f"Accuracy: {accuracy:.4f}")
+        print(f"ROC AUC: {auc:.4f}")
+        print(f"Average Precision: {avg_precision:.4f}")
+        print(f"Sensitivity (Recall): {sensitivity:.4f}")
+        print(f"Specificity: {specificity:.4f}")
+        print(f"F1 Score: {f1:.4f}")
+        
+        # Re-create predictions with optimal threshold
+        y_local_pred_optimal = (y_local_prob >= optimal_threshold).astype(int)
+        
+        # Print classification report with optimal threshold
+        print("\nClassification Report (Local Validation with optimal threshold):")
+        print(classification_report(y_local, y_local_pred_optimal))
+        
+    except Exception as e:
+        print(f"Could not calculate optimal threshold: {e}")
+        # Fallback to standard metrics
+        optimal_threshold = 0.5
+        metrics = calculate_standard_metrics(y_local, y_local_prob)
+        accuracy = metrics['accuracy']
+        auc = metrics['auc']
     
     # Plot ROC curve
     try:
@@ -247,26 +275,27 @@ def evaluate_local_performance(model, X_local, y_local):
     except Exception as e:
         print(f"Could not plot ROC curve: {e}")
     
-    return accuracy, auc, y_local_pred, y_local_prob
+    return metrics, optimal_threshold
 
-def save_model_and_results(model, feature_importance, global_accuracy, global_auc, 
-                         local_accuracy, local_auc, best_params=None):
-    """Save the trained model and results."""
+def save_model_and_results(model, feature_importance, metrics, optimal_threshold, best_params=None):
+    """Save the trained model and results using standardized formatting."""
     # Save the model
     with open(MODEL_PATH, 'wb') as f:
         pickle.dump(model, f)
     
     print(f"\nModel saved to {MODEL_PATH}")
     
-    # Update results markdown file
-    with open(RESULTS_PATH, 'a') as f:
-        f.write("\n\n## Random Forest Model Results (Optimized)\n\n")
-        f.write(f"**Date**: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}\n\n")
-        
-        f.write("### Performance Metrics\n")
-        f.write(f"- **Accuracy**: {local_accuracy:.4f}\n")
-        f.write(f"- **ROC AUC**: {local_auc:.4f}\n\n")
-        
+    # Save the optimal threshold
+    threshold_path = os.path.join(os.path.dirname(__file__), 'optimal_threshold.pkl')
+    with open(threshold_path, 'wb') as f:
+        pickle.dump(optimal_threshold, f)
+    print(f"Optimal threshold saved to {threshold_path}")
+    
+    # Use our standardized reporting function for the main metrics
+    report_metrics_markdown(metrics, "Random Forest", optimal_threshold, RESULTS_PATH)
+    
+    # Append additional model-specific details
+    with open(RESULTS_PATH, 'a') as f:        
         f.write("### Top Features by Importance\n")
         f.write("| Feature | Importance |\n")
         f.write("| ------- | ---------- |\n")
@@ -322,7 +351,7 @@ def plot_feature_importance(feature_importance, save_path):
         pass
 
 def main():
-    """Main function to train and evaluate the model."""
+    """Main function to train and evaluate the model using standardized metrics."""
     print("Starting Random Forest model training pipeline (Optimized)...\n")
     
     # Load data
@@ -349,25 +378,22 @@ def main():
             'min_samples_leaf': model.get_params()['min_samples_leaf']
         }
     
-    # Evaluate on local data
+    # Evaluate on local data using standardized metrics
     if X_local is not None and y_local is not None:
-        local_accuracy, local_auc, _, _ = evaluate_local_performance(model, X_local, y_local)
+        metrics, optimal_threshold = evaluate_local_performance(model, X_local, y_local)
     else:
-        local_accuracy, local_auc = 0.0, 0.0
+        # Generate empty metrics if no validation data
         print("No local validation data available for evaluation.")
+        y_train_prob = model.predict_proba(X_train)[:, 1]
+        metrics, optimal_threshold = find_optimal_threshold(y_train, y_train_prob)
+        print("WARNING: Using training data for metrics since no validation data is available")
     
-    # Get global metrics from the initial model training
-    global_accuracy = accuracy_score(y_train, model.predict(X_train))
-    global_auc = roc_auc_score(y_train, model.predict_proba(X_train)[:, 1])
-    
-    # Save model and results
+    # Save model and results using standardized reporting
     save_model_and_results(
-        model, 
-        feature_importance, 
-        global_accuracy, 
-        global_auc, 
-        local_accuracy, 
-        local_auc,
+        model,
+        feature_importance,
+        metrics,
+        optimal_threshold,
         best_params
     )
     

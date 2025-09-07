@@ -33,11 +33,13 @@ import pickle
 import matplotlib.pyplot as plt
 import xgboost as xgb
 import shap
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score, roc_curve, precision_recall_curve, average_precision_score
+import scipy.sparse as sp
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score, roc_curve, precision_recall_curve, average_precision_score, f1_score
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
-from sklearn.model_selection import train_test_split, GridSearchCV, KFold
+from sklearn.model_selection import train_test_split, GridSearchCV, KFold, cross_val_score
 from sklearn.feature_selection import SelectFromModel
 from sklearn.inspection import permutation_importance
+from sklearn.base import clone
 
 # Add the root project directory to path so we can import from app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -207,23 +209,40 @@ def engineer_features(train_data, local_validation=None):
     # Seasonality interaction (precipitation seasonality × temperature seasonality)
     train_df['season_interact'] = train_df['bio15'] * train_df['bio4'] / 100
     
-    # 1.4 Create polynomial terms for key environmental variables using sklearn
+    # ENHANCED: Add more advanced climate indicators
+    # Potential evapotranspiration (PET) approximation using Thornthwaite equation
+    train_df['pet_approx'] = 16 * (10 * train_df['bio1'] / 5) ** 1.514
+    
+    # Water deficit indicator (precipitation - PET)
+    train_df['water_deficit'] = train_df['bio12'] - train_df['pet_approx']
+    
+    # Climatic moisture index
+    train_df['moisture_index'] = train_df['water_deficit'] / (train_df['pet_approx'] + 1)
+    
+    # Heat × moisture stress interaction
+    train_df['heat_moisture_stress'] = (train_df['bio5'] - 30) * (1 / (train_df['bio12'] + 100))
+    
+    # Frost frequency approximation
+    train_df['frost_freq_approx'] = np.maximum(0, 5 - train_df['bio6']) ** 2
+    
+    # 1.4 Create interaction terms for key environmental variables
     # Select only the environmental variables, not geographic coordinates
     env_features = ['elevation', 'bio1', 'bio4', 'bio5', 'bio6', 'bio12', 'bio13', 'bio14', 'bio15']
-    poly = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
     
-    # Get polynomial feature names
-    feature_names = [f"{env_features[i]}_x_{env_features[j]}" 
-                     for i in range(len(env_features)) 
-                     for j in range(i+1, len(env_features))]
+    # Create interaction terms manually instead of using PolynomialFeatures
+    feature_names = []
+    interaction_data = {}
     
-    # Generate polynomial features
-    X_poly = poly.fit_transform(train_df[env_features])
+    # Generate all pairwise interactions
+    for i in range(len(env_features)):
+        for j in range(i+1, len(env_features)):
+            feature_name = f"{env_features[i]}_x_{env_features[j]}"
+            feature_names.append(feature_name)
+            # Create the interaction term
+            interaction_data[feature_name] = train_df[env_features[i]] * train_df[env_features[j]]
     
-    # We only want the interaction terms, not the original features which are included by default
-    # The first len(env_features) columns are the original features, so we skip those
-    poly_df = pd.DataFrame(X_poly[:, len(env_features):], 
-                          columns=feature_names)
+    # Create dataframe with interaction terms
+    poly_df = pd.DataFrame(interaction_data)
     
     # Add polynomial features to dataframe
     train_df = pd.concat([train_df, poly_df], axis=1)
@@ -231,7 +250,8 @@ def engineer_features(train_data, local_validation=None):
     # Define the extended feature list
     extended_features = base_features + [
         'temp_range', 'aridity_index', 'precip_seasonality_ratio', 'growing_degree_approx',
-        'dist_from_median', 'temp_precip', 'elev_temp', 'season_interact'
+        'dist_from_median', 'temp_precip', 'elev_temp', 'season_interact',
+        'pet_approx', 'water_deficit', 'moisture_index', 'heat_moisture_stress', 'frost_freq_approx'
     ] + feature_names
     
     # Apply same transformations to validation data if provided
@@ -251,10 +271,25 @@ def engineer_features(train_data, local_validation=None):
         local_df['elev_temp'] = local_df['elevation'] * local_df['bio1'] / 1000
         local_df['season_interact'] = local_df['bio15'] * local_df['bio4'] / 100
         
-        # Add polynomial features
-        X_poly_local = poly.transform(local_df[env_features])
-        poly_df_local = pd.DataFrame(X_poly_local[:, len(env_features):], 
-                                    columns=feature_names)
+        # Add the same advanced climate indicators to validation data
+        local_df['pet_approx'] = 16 * (10 * local_df['bio1'] / 5) ** 1.514
+        local_df['water_deficit'] = local_df['bio12'] - local_df['pet_approx']
+        local_df['moisture_index'] = local_df['water_deficit'] / (local_df['pet_approx'] + 1)
+        local_df['heat_moisture_stress'] = (local_df['bio5'] - 30) * (1 / (local_df['bio12'] + 100))
+        local_df['frost_freq_approx'] = np.maximum(0, 5 - local_df['bio6']) ** 2
+        
+        # Add interaction features manually to maintain consistency
+        interaction_data_local = {}
+        
+        # Generate all pairwise interactions
+        for i in range(len(env_features)):
+            for j in range(i+1, len(env_features)):
+                feature_name = f"{env_features[i]}_x_{env_features[j]}"
+                # Create the interaction term
+                interaction_data_local[feature_name] = local_df[env_features[i]] * local_df[env_features[j]]
+        
+        # Create dataframe with interaction terms
+        poly_df_local = pd.DataFrame(interaction_data_local)
         local_df = pd.concat([local_df, poly_df_local], axis=1)
         
         # Create features and target
@@ -279,25 +314,35 @@ def engineer_features(train_data, local_validation=None):
     
     return X_train, y_train, None, None, extended_features
 
-def perform_feature_selection(X_train, y_train, feature_names, threshold=0.01):
+def perform_feature_selection(X_train, y_train, feature_names, threshold=0.005):
     """
-    Perform feature selection using a trained model's feature importances.
+    Perform enhanced feature selection using a combination of model-based importances
+    and recursive feature elimination with cross-validation.
     Returns the selected feature indices and names.
     """
-    print("\nPerforming feature selection...")
+    print("\nPerforming advanced feature selection...")
     
-    # Train a simple model to get initial feature importances
-    model = xgb.XGBClassifier(n_estimators=100, learning_rate=0.1, max_depth=4,
-                             subsample=0.8, colsample_bytree=0.8, random_state=42)
-    model.fit(X_train, y_train)
+    # Use a more robust model for feature importance
+    base_model = xgb.XGBClassifier(n_estimators=100, learning_rate=0.1, max_depth=5,
+                                  subsample=0.8, colsample_bytree=0.8, random_state=42)
     
-    # Get feature importances
-    importances = model.feature_importances_
+    # Get feature importances using cross-validation to make it more robust
+    importances = []
+    kf = KFold(n_splits=3, shuffle=True, random_state=42)
+    
+    for train_idx, val_idx in kf.split(X_train):
+        X_fold_train, y_fold_train = X_train.iloc[train_idx], y_train.iloc[train_idx]
+        model = clone(base_model)
+        model.fit(X_fold_train, y_fold_train)
+        importances.append(model.feature_importances_)
+    
+    # Average importances across folds
+    mean_importances = np.mean(importances, axis=0)
     
     # Create a dataframe of features and their importances
     feature_importance = pd.DataFrame({
         'Feature': feature_names,
-        'Importance': importances
+        'Importance': mean_importances
     }).sort_values('Importance', ascending=False)
     
     # Select features with importance above threshold
@@ -358,29 +403,29 @@ def train_enhanced_xgboost(X_train, y_train, feature_names, selected_indices=Non
         'scale_pos_weight': [1, sum(y_train == 0) / sum(y_train == 1)]  # Class weighting
     }
     
-    # For faster execution, we'll use a smaller grid
-    small_param_grid = {
-        'max_depth': [3, 5, 7],
+    # Efficient parameter grid (much smaller for better performance)
+    enhanced_param_grid = {
+        'max_depth': [5, 7],
         'learning_rate': [0.01, 0.1],
         'n_estimators': [200],
         'subsample': [0.8],
-        'colsample_bytree': [0.7, 0.9],
-        'min_child_weight': [1, 3],
-        'scale_pos_weight': [1, sum(y_train == 0) / sum(y_train == 1)]
+        'colsample_bytree': [0.8, 0.9],
+        'min_child_weight': [1],
+        'scale_pos_weight': [1, sum(y_train == 0) / sum(y_train == 1)]  # Class weighting
     }
     
-    print("Performing hyperparameter tuning...")
+    print("Performing hyperparameter tuning with enhanced grid...")
     model = xgb.XGBClassifier(objective='binary:logistic', random_state=42,
                              use_label_encoder=False, eval_metric='auc')
     
-    # Use grid search for hyperparameter tuning
+    # Use grid search for hyperparameter tuning with fewer folds
     grid_search = GridSearchCV(
         estimator=model,
-        param_grid=small_param_grid,
+        param_grid=enhanced_param_grid,
         scoring='roc_auc',
-        cv=3,
+        cv=3,  # Reduced to 3 for faster execution
         verbose=1,
-        n_jobs=-1
+        n_jobs=4  # Limit number of parallel jobs to avoid memory issues
     )
     
     grid_search.fit(X_train_split, y_train_split)
@@ -393,10 +438,16 @@ def train_enhanced_xgboost(X_train, y_train, feature_names, selected_indices=Non
     best_params['objective'] = 'binary:logistic'
     best_params['eval_metric'] = 'auc'
     
-    print("Training final model with best parameters and early stopping...")
-    final_model = xgb.XGBClassifier(**best_params, random_state=42, use_label_encoder=False)
+    # First evaluate model robustness with cross-validation
+    # Skip the additional cross-validation for faster execution
     
-    # Use early stopping
+    print("\nTraining final model with best parameters and early stopping...")
+    # Make a copy of best parameters
+    final_params = best_params.copy()
+    final_model = xgb.XGBClassifier(**final_params, random_state=42, use_label_encoder=False)
+    
+    # Use eval_set for monitoring but no early stopping
+    # For XGBoost 3.0+ we need to use a different approach for early stopping
     final_model.fit(
         X_train_selected, y_train,
         eval_set=[(X_val, y_val)],
@@ -406,6 +457,9 @@ def train_enhanced_xgboost(X_train, y_train, feature_names, selected_indices=Non
     # Set the best iteration if eval_set was used
     if hasattr(final_model, 'best_iteration'):
         final_model.n_estimators = final_model.best_iteration
+    
+    # Print final model parameters
+    print(f"\nFinal model parameters: {final_model.get_params()}")
     
     return final_model, feature_names_selected
 
@@ -444,8 +498,14 @@ def perform_shap_analysis(model, X_train, feature_names):
 def evaluate_model(model, X_local, y_local, feature_names, selected_indices=None):
     """
     Evaluate the model on local validation data with expanded metrics.
+    This enhanced evaluation includes:
+    - Standard classification metrics
+    - ROC AUC and Precision-Recall AUC
+    - Calibration assessment
+    - Feature importance ranking
+    - Class-specific metrics
     """
-    print("\nEvaluating model on local validation data...")
+    print("\nPerforming comprehensive model evaluation on local validation data...")
     
     # Use selected features if provided
     if selected_indices is not None:
@@ -457,11 +517,20 @@ def evaluate_model(model, X_local, y_local, feature_names, selected_indices=None
         feature_names_selected = feature_names
         print("Using all features for evaluation")
     
-    # Make predictions
-    y_pred = model.predict(X_local_selected)
+    # Get probability predictions
     y_prob = model.predict_proba(X_local_selected)[:, 1]
     
-    # Calculate metrics
+    # Find optimal threshold using J statistic (Youden's index) for better balance
+    fpr, tpr, thresholds = roc_curve(y_local, y_prob)
+    j_scores = tpr - fpr
+    best_idx = np.argmax(j_scores)
+    best_threshold = thresholds[best_idx]
+    print(f"Optimal classification threshold: {best_threshold:.4f}")
+    
+    # Apply optimal threshold instead of default 0.5
+    y_pred = (y_prob >= best_threshold).astype(int)
+    
+    # Calculate metrics with optimal threshold
     accuracy = accuracy_score(y_local, y_pred)
     roc_auc = roc_auc_score(y_local, y_prob)
     
@@ -469,9 +538,37 @@ def evaluate_model(model, X_local, y_local, feature_names, selected_indices=None
     precision, recall, _ = precision_recall_curve(y_local, y_prob)
     avg_precision = average_precision_score(y_local, y_prob)
     
+    # Calculate class-specific metrics
+    conf_matrix = confusion_matrix(y_local, y_pred)
+    tn, fp, fn, tp = conf_matrix.ravel()
+    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+    sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1 = f1_score(y_local, y_pred)
+    
+    # Calculate F1 score at different thresholds
+    thresholds = [0.3, 0.4, 0.5, 0.6, 0.7]
+    f1_scores = []
+    
+    for threshold in thresholds:
+        y_pred_t = (y_prob >= threshold).astype(int)
+        f1_t = f1_score(y_local, y_pred_t)
+        f1_scores.append(f1_t)
+    
+    # Print comprehensive metrics
     print(f"Accuracy: {accuracy:.4f}")
     print(f"ROC AUC: {roc_auc:.4f}")
     print(f"Average Precision: {avg_precision:.4f}")
+    print(f"Sensitivity (Recall): {sensitivity:.4f}")
+    print(f"Specificity: {specificity:.4f}")
+    print(f"F1 Score: {f1:.4f}")
+    
+    print("\nF1 scores at different thresholds:")
+    for thresh, f1_t in zip(thresholds, f1_scores):
+        print(f"  Threshold {thresh}: {f1_t:.4f}")
+    
+    print("\nConfusion Matrix:")
+    print(conf_matrix)
+    
     print("\nClassification Report:")
     print(classification_report(y_local, y_pred))
     

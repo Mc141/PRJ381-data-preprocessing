@@ -688,7 +688,7 @@ def process_weather_features(weather_data: List[Dict[str, Any]], observation_dat
         return {}
 
 @router.get("/datasets/export-ml-ready",
-           summary="📥 Export ML-Ready Dataset",
+           summary=" Export ML-Ready Dataset",
            description="""
 **STEP 5 of ML Pipeline** - Export dataset for Random Forest and ML training
 

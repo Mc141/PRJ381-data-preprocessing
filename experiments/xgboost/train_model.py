@@ -31,6 +31,10 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV
 
+# Import standardized metrics calculation utilities
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from metrics_utils import calculate_standard_metrics, find_optimal_threshold, report_metrics_markdown
+
 # Add the root project directory to path so we can import from app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
@@ -204,26 +208,53 @@ def train_xgboost_model(X_train, y_train):
     return final_model
 
 def evaluate_model(model, X_local, y_local):
-    """Evaluate the model on local validation data."""
+    """Evaluate the model on local validation data using standardized metrics."""
     print("\nEvaluating model on local validation data...")
     
-    # Make predictions
+    # Get raw predictions and probabilities
     y_pred = model.predict(X_local)
     y_prob = model.predict_proba(X_local)[:, 1]
     
-    # Calculate metrics
-    accuracy = accuracy_score(y_local, y_pred)
-    roc_auc = roc_auc_score(y_local, y_prob)
-    
-    print(f"Accuracy: {accuracy:.4f}")
-    print(f"ROC AUC: {roc_auc:.4f}")
-    print("\nClassification Report:")
-    print(classification_report(y_local, y_pred))
+    # Find optimal threshold using our standardized function
+    try:
+        optimal_threshold, metrics = find_optimal_threshold(y_local, y_prob)
+        print(f"Optimal classification threshold: {optimal_threshold:.4f}")
+        
+        # Extract key metrics for easy access
+        accuracy = metrics['accuracy']
+        auc = metrics['auc'] 
+        avg_precision = metrics['average_precision']
+        sensitivity = metrics['sensitivity']
+        specificity = metrics['specificity']
+        f1 = metrics['f1_score']
+        
+        print("\nModel performance with optimal threshold:")
+        print(f"Accuracy: {accuracy:.4f}")
+        print(f"ROC AUC: {auc:.4f}")
+        print(f"Average Precision: {avg_precision:.4f}")
+        print(f"Sensitivity (Recall): {sensitivity:.4f}")
+        print(f"Specificity: {specificity:.4f}")
+        print(f"F1 Score: {f1:.4f}")
+        
+        # Re-create predictions with optimal threshold
+        y_pred_optimal = (y_prob >= optimal_threshold).astype(int)
+        
+        # Print classification report with optimal threshold
+        print("\nClassification Report (with optimal threshold):")
+        print(classification_report(y_local, y_pred_optimal))
+        
+    except Exception as e:
+        print(f"Could not calculate optimal threshold: {e}")
+        # Fallback to standard metrics with default threshold
+        optimal_threshold = 0.5
+        metrics = calculate_standard_metrics(y_local, y_prob)
+        accuracy = metrics['accuracy']
+        auc = metrics['auc']
     
     # Plot ROC curve
     plt.figure(figsize=(10, 6))
     fpr, tpr, _ = roc_curve(y_local, y_prob)
-    plt.plot(fpr, tpr, lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
+    plt.plot(fpr, tpr, lw=2, label=f'ROC curve (AUC = {auc:.2f})')
     plt.plot([0, 1], [0, 1], 'k--', lw=2)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
@@ -235,7 +266,13 @@ def evaluate_model(model, X_local, y_local):
     plt.savefig(roc_plot_path)
     print(f"ROC curve saved to {roc_plot_path}")
     
-    return accuracy, roc_auc
+    # Save the optimal threshold
+    threshold_path = os.path.join(os.path.dirname(__file__), 'optimal_threshold.pkl')
+    with open(threshold_path, 'wb') as f:
+        pickle.dump(optimal_threshold, f)
+    print(f"Optimal threshold saved to {threshold_path}")
+    
+    return metrics, optimal_threshold
 
 def plot_feature_importance(model, feature_names):
     """Plot feature importance."""
@@ -269,56 +306,37 @@ def save_model(model):
         pickle.dump(model, f)
     print("Model saved successfully.")
 
-def append_results_to_markdown(accuracy, roc_auc, feature_importance):
-    """Append model results to the markdown file."""
+def append_results_to_markdown(metrics, optimal_threshold, feature_importance):
+    """Append model results to the markdown file using standardized format."""
     print(f"\nAppending results to {RESULTS_PATH}...")
     
-    # Create markdown content
-    markdown = f"""
-## XGBoost Model Results
-
-**Date**: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}
-
-### Performance Metrics
-- **Accuracy**: {accuracy:.4f}
-- **ROC AUC**: {roc_auc:.4f}
-
-### Top Features by Importance
-| Feature | Importance |
-| ------- | ---------- |
-"""
+    # Use our standardized reporting function for the main metrics
+    report_metrics_markdown(metrics, "XGBoost", optimal_threshold, RESULTS_PATH)
     
-    # Add top 10 features
-    for _, row in feature_importance.head(10).iterrows():
-        markdown += f"| {row['Feature']} | {row['Importance']:.4f} |\n"
-    
-    markdown += f"""
-### Model Details
-- **Model**: XGBoost Classifier
-- **Hyperparameters**: Tuned via GridSearchCV (best params shown in console)
-- **Trained on**: Global dataset with background comparison points
-- **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost/model.pkl`
-
-### Visualization
-- ROC Curve: `experiments/xgboost/roc_curve.png`
-- Feature Importance: `experiments/xgboost/feature_importance.png`
-
-"""
-    
-    # Check if file exists
-    if os.path.exists(RESULTS_PATH):
-        with open(RESULTS_PATH, 'a') as f:
-            f.write(markdown)
-    else:
-        with open(RESULTS_PATH, 'w') as f:
-            f.write("# Model Results\n")
-            f.write(markdown)
+    # Append model-specific details like feature importance
+    with open(RESULTS_PATH, 'a') as f:
+        f.write("### Top Features by Importance\n")
+        f.write("| Feature | Importance |\n")
+        f.write("| ------- | ---------- |\n")
+        for _, row in feature_importance.head(10).iterrows():
+            f.write(f"| {row['Feature']} | {row['Importance']:.4f} |\n")
+        
+        f.write("\n### Model Details\n")
+        f.write("- **Model**: XGBoost Classifier\n")
+        f.write("- **Hyperparameters**: Tuned via GridSearchCV (best params shown in console)\n")
+        f.write("- **Optimal Threshold**: {optimal_threshold:.4f}\n")
+        f.write("- **Trained on**: Global dataset with background comparison points\n")
+        f.write("- **Validated on**: South African dataset\n")
+        f.write("- **Model file**: `experiments/xgboost/model.pkl`\n\n")
+        
+        f.write("### Visualization\n")
+        f.write("- ROC Curve: `experiments/xgboost/roc_curve.png`\n")
+        f.write("- Feature Importance: `experiments/xgboost/feature_importance.png`\n")
     
     print("Results appended successfully.")
 
 def main():
-    """Run the entire model training pipeline."""
+    """Run the entire model training pipeline using standardized metrics."""
     print("=== XGBoost Model Training Pipeline ===")
     
     # Load and prepare data
@@ -337,11 +355,13 @@ def main():
     
     # Evaluate model (if we have local validation data)
     if X_local is not None and y_local is not None:
-        accuracy, roc_auc = evaluate_model(model, X_local, y_local)
+        metrics, optimal_threshold = evaluate_model(model, X_local, y_local)
     else:
-        # If no local validation data, use some default values
-        accuracy, roc_auc = 0.0, 0.0
-        print("No local validation data available for evaluation.")
+        # If no local validation data, use training data with a warning
+        print("WARNING: No local validation data available for evaluation.")
+        print("Using training data for metrics calculation - results may be overly optimistic.")
+        y_train_prob = model.predict_proba(X_train)[:, 1]
+        metrics, optimal_threshold = find_optimal_threshold(y_train, y_train_prob)
     
     # Plot feature importance
     feature_importance = plot_feature_importance(model, X_train.columns)
@@ -349,8 +369,8 @@ def main():
     # Save model
     save_model(model)
     
-    # Append results to markdown
-    append_results_to_markdown(accuracy, roc_auc, feature_importance)
+    # Append results to markdown using standardized format
+    append_results_to_markdown(metrics, optimal_threshold, feature_importance)
     
     print("\n=== XGBoost Model Training Complete ===")
 

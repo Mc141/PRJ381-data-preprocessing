@@ -91,7 +91,7 @@ Create machine learning datasets from **real global biodiversity data** enriched
 `GET /api/v1/datasets/merge-global?include_nasa_weather=false` - Create enriched training dataset
 
 #### **Step 5: ML Export**
-`GET /api/v1/datasets/export-ml-ready?dataset_type=global_training&format=csv` - Export ML-ready dataset
+`GET /api/v1/datasets?format=csv` - Export finalized datasets for training
 
 #### **Step 6: Model Validation**
 `GET /api/v1/datasets/climate-comparison` - Validate environmental data quality
@@ -192,7 +192,7 @@ app.include_router(predictions.router, prefix="/api/v1", tags=["6. Predictions &
 
 # UTILITIES & OPTIONAL
 app.include_router(weather.router, prefix="/api/v1", tags=["Weather Data (NASA)"])
-
+    
 # DIRECT ENVIRONMENTAL DATA ACCESS (new endpoints for generate_heatmap.py)
 app.include_router(elevation.router, prefix="/api/v1", tags=["3. Environmental Data"])
 app.include_router(weather_direct.router, prefix="/api/v1", tags=["3. Environmental Data"])
