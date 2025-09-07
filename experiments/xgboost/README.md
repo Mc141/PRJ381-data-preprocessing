@@ -11,16 +11,18 @@ XGBoost offers several advantages over Random Forest for this particular predict
 ## Note on Binary Classification
 
 For binary classification tasks like invasion risk prediction, models require:
+
 - Class 1: Presence points (locations where the species is known to occur)
 - Class 0: Background/absence points (locations representing unsuitable environments)
 
 This implementation:
+
 1. **Uses real occurrence data** from the provided datasets
 2. Creates minimal background comparison points only if needed for model training
 3. Background points are created by offsetting real occurrences to maintain environmental realism
 4. These background points are not claimed to be "true absences" but rather comparison points needed for the mathematical requirements of binary classification algorithmsantha Invasion Risk Prediction
 
-This directory contains an XGBoost-based approach for analyzing and visualizing the invasion risk of *Pyracantha angustifolia* in the Western Cape region using only real data.
+This directory contains an XGBoost-based approach for analyzing and visualizing the invasion risk of _Pyracantha angustifolia_ in the Western Cape region using only real data.
 
 ## Files
 
@@ -49,6 +51,7 @@ python -m experiments.xgboost.train_model
 ```
 
 This will:
+
 1. Load the global training and local validation datasets (primarily using real data)
 2. Create minimal background comparison points if needed for binary classification
 3. Perform hyperparameter tuning with cross-validation

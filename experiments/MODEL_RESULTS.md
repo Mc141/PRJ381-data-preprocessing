@@ -290,3 +290,69 @@ Date: 2025-09-07 15:21:37
 ### Visualization
 - Feature Importance: `experiments/random_forest/feature_importance.png`
 - ROC Curve: `experiments/random_forest/roc_curve.png`
+
+## XGBoost Enhanced Model Results
+
+**Date**: 2025-09-07 16:37
+
+### Performance Metrics
+- **Accuracy**: 0.7273
+- **ROC AUC**: 0.6838
+- **Average Precision**: 0.8356
+
+### Top Features by Importance
+| Feature | Importance |
+| ------- | ---------- |
+| dist_from_median | 0.0528 |
+| bio6_x_bio13 | 0.0492 |
+| bio1_x_bio13 | 0.0489 |
+| bio6_x_bio14 | 0.0417 |
+| longitude | 0.0347 |
+| bio1_x_bio14 | 0.0340 |
+| bio1 | 0.0309 |
+| sin_month | 0.0253 |
+| bio14_x_bio15 | 0.0252 |
+| latitude | 0.0232 |
+| bio5_x_bio12 | 0.0220 |
+| bio6 | 0.0215 |
+| bio13_x_bio15 | 0.0213 |
+| elev_temp | 0.0208 |
+| bio5_x_bio6 | 0.0204 |
+
+### Top Features by SHAP Value
+| Feature | SHAP Value |
+| ------- | ---------- |
+| dist_from_median | 0.4742 |
+| longitude | 0.3403 |
+| latitude | 0.1947 |
+| elevation | 0.0308 |
+| bio1 | 0.0293 |
+| bio14_x_bio15 | 0.0280 |
+| sin_month | 0.0267 |
+| bio1_x_bio13 | 0.0267 |
+| elevation_x_bio6 | 0.0252 |
+| elevation_x_bio13 | 0.0214 |
+| elev_temp | 0.0210 |
+| cos_month | 0.0209 |
+| bio13 | 0.0165 |
+| bio6_x_bio14 | 0.0162 |
+| bio4_x_bio5 | 0.0147 |
+
+### Model Details
+- **Model**: Enhanced XGBoost Classifier
+- **Improvements**: 
+  - Advanced feature engineering (interactions, climate indices)
+  - Feature selection
+  - SHAP-based interpretation
+  - Precision-Recall analysis
+  - Spatial pattern reduction
+- **Trained on**: Global dataset with environmentally stratified background points
+- **Validated on**: South African dataset
+- **Model file**: `experiments/xgboost_enhanced/model.pkl`
+
+### Visualization
+- ROC Curve: `experiments/xgboost_enhanced/roc_curve.png`
+- Feature Importance: `experiments/xgboost_enhanced/feature_importance.png`
+- SHAP Summary: `experiments/xgboost_enhanced/shap_summary.png`
+- Precision-Recall: `experiments/xgboost_enhanced/precision_recall_curve.png`
+
