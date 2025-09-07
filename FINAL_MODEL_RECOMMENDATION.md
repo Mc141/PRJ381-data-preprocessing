@@ -51,6 +51,26 @@ To use the recommended model in the production API:
 3. Apply the optimal classification threshold for balanced predictions
 4. Consider updating the model periodically as new data becomes available
 
+## Advanced Visualization Capabilities
+
+We have developed an enhanced visualization tool (`experiments/ensemble/generate_heatmap_enhanced.py`) that offers significant advantages over basic visualization:
+
+### Key Features
+
+- **Multi-season Comparison**: Simultaneously visualize invasion risk across different months (e.g., January, June, December) to identify seasonal patterns and variations
+- **Interactive Controls**: Layer toggling between seasons, base map options (terrain, satellite), and measurement tools
+- **Known Invasion Sites**: Overlay of documented Pyracantha invasion locations with severity indicators
+- **Adjustable Resolution**: Support for higher resolution grids (up to 30x30) for more detailed mapping
+- **Customizable Area**: Specify exact latitude/longitude bounds for targeted analysis
+- **Enhanced Legend**: Color gradient with proper risk score interpretation
+- **Information Panel**: Comprehensive metadata about the visualization parameters
+
+### Usage Example
+
+```bash
+python -m experiments.ensemble.generate_heatmap_enhanced --grid_size 20 --months 1,6,12 --lat_min -34.15 --lat_max -33.85 --lon_min 18.45 --lon_max 18.75
+```
+
 ## Future Improvements
 
 1. Incorporate additional environmental data sources

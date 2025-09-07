@@ -33,6 +33,9 @@ The ensemble approach combines:
 - `optimal_threshold.pkl`: Optimal classification threshold for predictions
 - `roc_curve.png`: ROC curve visualization
 - `precision_recall_curve.png`: Precision-recall curve visualization
+- `generate_heatmap_api.py`: Basic script to generate invasion risk heatmaps
+- `generate_heatmap_enhanced.py`: Advanced visualization tool with multi-season support
+- `known_invasion_sites.csv`: Sample dataset of known Pyracantha invasion locations
 
 ## Usage
 
@@ -41,6 +44,36 @@ To train and evaluate the ensemble model:
 ```bash
 python -m experiments.ensemble.train_model
 ```
+
+### Enhanced Visualization Tool
+
+The enhanced visualization tool provides powerful capabilities for creating interactive invasion risk maps:
+
+```bash
+# Basic usage with default parameters
+python -m experiments.ensemble.generate_heatmap_enhanced
+
+# Advanced usage with customized parameters
+python -m experiments.ensemble.generate_heatmap_enhanced --grid_size 20 --months 1,6,12 --lat_min -34.15 --lat_max -33.85 --lon_min 18.45 --lon_max 18.75
+```
+
+#### Parameters
+
+- `--grid_size`: Number of points per dimension (higher = more detail)
+- `--months`: Comma-separated list of months to analyze (1-12)
+- `--lat_min`, `--lat_max`, `--lon_min`, `--lon_max`: Area boundaries
+- `--known_sites`: Path to CSV file with known invasion sites
+- `--batch_size`: API request batch size for performance tuning
+- `--output`: Custom output file path
+
+#### Features
+
+- Multi-season comparison in a single interactive map
+- Known invasion site markers with severity indicators
+- Layer controls for toggling between different months
+- Multiple base maps (terrain, satellite, street)
+- Measurement tools for distance and area calculations
+- Export capabilities for generated maps
 
 ## Key Advantages
 

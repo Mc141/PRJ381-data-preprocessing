@@ -2,7 +2,25 @@
 
 **Status:** Production Ready
 
-A comprehensive FastAPI service for preprocessing global invasive species data using GBIF occurrence records. Designed for **transfer learning** applications where models are trained on worldwide distribution patterns and validated on local South African data.
+A comprehensive FastAPI service for preprocessing global invasive species data using GBIF occurrence records. Designed f- **Deployment**: Use trained model for invasion risk prediction
+
+### **Advanced Visualization System**
+
+The project features a sophisticated map generation system for visualizing invasion risk:
+
+- **Enhanced Interactive Maps**: `experiments/ensemble/generate_heatmap_enhanced.py`
+- **Multi-season Comparison**: Toggle between different months (e.g., January, June, December)
+- **Known Invasion Sites**: Overlay documented Pyracantha locations with severity indicators
+- **High-Resolution Support**: Adjustable grid resolution up to 30x30 points
+- **Interactive Controls**: Layer switching, measurement tools, and export capabilities
+- **Custom Area Selection**: Target specific regions with precise lat/long boundaries
+
+```bash
+# Generate enhanced invasion risk map with seasonal comparison
+python -m experiments.ensemble.generate_heatmap_enhanced --grid_size 20 --months 1,6,12
+```
+
+---**transfer learning** applications where models are trained on worldwide distribution patterns and validated on local South African data.
 
 **Global Scale**: Process ~3,300 worldwide _Pyracantha angustifolia_ (Franch.) C.K.Schneid. occurrences  
 **Local- **Deployment\*\*: Docker containerization and cloud deployment
@@ -222,6 +240,7 @@ graph LR
 - **Real-time Weather Integration**: Live NASA POWER API data for current predictions
 - **Interactive Heatmaps**: Dynamic invasion risk visualizations with real weather data
 - **Seasonal Intelligence**: Model learned that 66% of observations occur during autumn flowering
+- **Enhanced Visualization Tool**: Multi-season comparison maps with known invasion site overlays
 
 - **Machine Learning Experiments** (`experiments/random_forest/`)
 
