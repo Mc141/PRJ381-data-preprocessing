@@ -8,7 +8,7 @@ A comprehensive FastAPI service for preprocessing global invasive species data u
 
 The project features a sophisticated map generation system for visualizing invasion risk:
 
-- **Enhanced Interactive Maps**: `experiments/ensemble/generate_heatmap_enhanced.py`
+- **Enhanced Interactive Maps**: `experiments/xgboost_enhanced/generate_heatmap_api.py`
 - **Multi-season Comparison**: Toggle between different months (e.g., January, June, December)
 - **Known Invasion Sites**: Overlay documented Pyracantha locations with severity indicators
 - **High-Resolution Support**: Adjustable grid resolution up to 30x30 points
@@ -17,7 +17,7 @@ The project features a sophisticated map generation system for visualizing invas
 
 ```bash
 # Generate enhanced invasion risk map with seasonal comparison
-python -m experiments.ensemble.generate_heatmap_enhanced --grid_size 20 --months 1,6,12
+python -m experiments.xgboost_enhanced.generate_heatmap_api --grid_size 20 --months 1,6,12
 ```
 
 ---**transfer learning** applications where models are trained on worldwide distribution patterns and validated on local South African data.
@@ -30,7 +30,7 @@ python -m experiments.ensemble.generate_heatmap_enhanced --grid_size 20 --months
 ### **Research Opportunities**
 
 - **Climate Change**: Future climate scenario modeling
-- **Ensemble Methods**: Multiple ML model comparison and ensembling
+- **Advanced ML Models**: XGBoost Enhanced with feature engineering and interpretability
 - **Uncertainty Quantification**: Prediction confidence intervals
 - **Temporal Dynamics**: Species spread pattern analysis over timeon**: South African subset for model validation  
   **Environmental Enrichment**: WorldClim climate variables + NASA weather data  
@@ -507,7 +507,7 @@ GET /api/v1/predictions/visualize_map?save_file=true
 ### **Research Extensions**
 
 - **Climate Change**: Future climate scenario modeling
-- **Ensemble Methods**: Multiple ML model comparison and ensembling
+- **Advanced ML Models**: XGBoost Enhanced with feature engineering and interpretability
 - **Uncertainty Quantification**: Prediction confidence intervals
 - **Temporal Dynamics**: Species spread pattern analysis over time
 

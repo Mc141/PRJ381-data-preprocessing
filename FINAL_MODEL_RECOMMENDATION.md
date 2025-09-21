@@ -1,6 +1,6 @@
 # Final Model Recommendation for Pyracantha Invasion Risk Prediction
 
-**Date:** 2025-09-07
+**Date:** 2025-09-21
 
 ## Model Comparison
 
@@ -12,64 +12,38 @@
 | ---------------- | -------- | ------ | -------- | ----------- | ----------- |
 | Random Forest    | 0.7548   | 0.8284 | 0.8553   | 1.0000      | 0.1100      |
 | XGBoost          | 0.7769   | 0.7791 | 0.8657   | 0.9924      | 0.2100      |
-| XGBoost Enhanced | 0.6970   | 0.6928 | N/A      | N/A         | N/A         |
-| Ensemble         | 0.7713   | 0.7557 | 0.8633   | 0.9962      | 0.1800      |
+| XGBoost Enhanced | 0.6970   | 0.6928 | 0.7835   | 0.7567      | 0.5400      |
 
 ## Recommended Model
 
-**Ensemble**
+**XGBoost**
 
 ### Key Performance Metrics
 
-- AUC: 0.7557
-- Accuracy: 0.7713
-- F1 Score: 0.8633
-- Specificity: 0.1800
-- Sensitivity: 0.9962
-- Average Precision: 0.8885
+- AUC: 0.7791
+- Accuracy: 0.7769
+- F1 Score: 0.8657
+- Specificity: 0.2100
+- Sensitivity: 0.9924
+- Average Precision: 0.8915
 
 ### Reasons for Recommendation
 
-- AUC is 0.02 lower than XGBoost
-- Specificity is 0.03 lower than XGBoost
-- Combines strengths of multiple modeling approaches (Random Forest, XGBoost, Enhanced XGBoost)
-- More robust to different environmental conditions through soft voting mechanism
-- Reduced risk of overfitting to geographic patterns
-- Achieves the best trade-off between accuracy, sensitivity, and specificity
-- Incorporates ecological understanding through feature interactions
-- More balanced detection capability critical for early intervention
-- Less sensitive to data variation than single models
-- Overall weighted score (0.9747) is highest among all 4 models
-- Superior for practical conservation planning where balanced detection is crucial
+- AUC is 0.05 lower than Random Forest
+- Accuracy is 0.02 higher than Random Forest
+- F1 Score is 0.01 higher than Random Forest
+- Specificity is 0.10 higher than Random Forest
+- Average Precision is 0.04 lower than Random Forest
+- Overall weighted score (0.8389) is highest among all 3 models
 
 ## Implementation Notes
 
 To use the recommended model in the production API:
 
-1. Load the model from `experiments/ensemble/model.pkl`
+1. Load the model from `experiments/xgboost/model.pkl`
 2. Use the same feature engineering steps as in the training script
 3. Apply the optimal classification threshold for balanced predictions
 4. Consider updating the model periodically as new data becomes available
-
-## Advanced Visualization Capabilities
-
-We have developed an enhanced visualization tool (`experiments/ensemble/generate_heatmap_enhanced.py`) that offers significant advantages over basic visualization:
-
-### Key Features
-
-- **Multi-season Comparison**: Simultaneously visualize invasion risk across different months (e.g., January, June, December) to identify seasonal patterns and variations
-- **Interactive Controls**: Layer toggling between seasons, base map options (terrain, satellite), and measurement tools
-- **Known Invasion Sites**: Overlay of documented Pyracantha invasion locations with severity indicators
-- **Adjustable Resolution**: Support for higher resolution grids (up to 30x30) for more detailed mapping
-- **Customizable Area**: Specify exact latitude/longitude bounds for targeted analysis
-- **Enhanced Legend**: Color gradient with proper risk score interpretation
-- **Information Panel**: Comprehensive metadata about the visualization parameters
-
-### Usage Example
-
-```bash
-python -m experiments.ensemble.generate_heatmap_enhanced --grid_size 20 --months 1,6,12 --lat_min -34.15 --lat_max -33.85 --lon_min 18.45 --lon_max 18.75
-```
 
 ## Future Improvements
 

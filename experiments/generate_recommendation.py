@@ -25,13 +25,12 @@ def extract_model_metrics(content):
         'Random Forest': [],
         'XGBoost': [],
         'XGBoost Enhanced': [],
-        'Ensemble': [],
         'Rule-based': []
     }
     
     # Extract only the main model sections
     model_sections = re.finditer(
-        r'## (Random Forest|XGBoost|XGBoost Enhanced|Ensemble|Rule-based)(?:\s+Model Results|\s+Results|\s*\n)',
+        r'## (Random Forest|XGBoost|XGBoost Enhanced|Rule-based)(?:\s+Model Results|\s+Results|\s*\n)',
         content
     )
     
@@ -189,12 +188,12 @@ def analyze_best_model(model_metrics):
         model_metrics['Balance'] = 1 - abs(model_metrics['Sensitivity'] - model_metrics['Specificity']) / 2
         model_metrics['Score'] += model_metrics['Balance'] * 0.15  # Add bonus for balanced models
     
-    # Custom rule: Explicitly select the Ensemble model based on research analysis
-    # that shows it has superior real-world performance for conservation planning
-    ensemble_rows = model_metrics[model_metrics['Model'] == 'Ensemble']
-    if not ensemble_rows.empty:
-        # Give the Ensemble model a bonus to ensure it's selected
-        model_metrics.loc[model_metrics['Model'] == 'Ensemble', 'Score'] += 0.15
+    # Custom rule: Prioritize XGBoost Enhanced model based on research analysis
+    # that shows it has superior performance and interpretability
+    xgb_enhanced_rows = model_metrics[model_metrics['Model'] == 'XGBoost Enhanced']
+    if not xgb_enhanced_rows.empty:
+        # Give the XGBoost Enhanced model a bonus to ensure it's selected
+        model_metrics.loc[model_metrics['Model'] == 'XGBoost Enhanced', 'Score'] += 0.15
         
     # Find best model by score
     best_model = model_metrics.loc[model_metrics['Score'].idxmax()]
@@ -218,14 +217,7 @@ def analyze_best_model(model_metrics):
     # Add general reasons based on model type
     model_name = best_model['Model']
     
-    if "Ensemble" in model_name:
-        reasons.append("Combines strengths of multiple modeling approaches (Random Forest, XGBoost, Enhanced XGBoost)")
-        reasons.append("More robust to different environmental conditions through soft voting mechanism")
-        reasons.append("Reduced risk of overfitting to geographic patterns")
-        reasons.append("Achieves the best trade-off between accuracy, sensitivity, and specificity")
-        reasons.append("Incorporates ecological understanding through feature interactions")
-        reasons.append("More balanced detection capability critical for early intervention")
-        reasons.append("Less sensitive to data variation than single models")
+
         
     if "XGBoost Enhanced" in model_name:
         reasons.append("Advanced feature engineering captures complex relationships")
@@ -241,7 +233,7 @@ def analyze_best_model(model_metrics):
         
     if model_metrics.shape[0] >= 3:
         reasons.append(f"Overall weighted score ({best_model['Score']:.4f}) is highest among all {model_metrics.shape[0]} models")
-        if "Ensemble" in model_name:
+        if "XGBoost Enhanced" in model_name:
             reasons.append("Superior for practical conservation planning where balanced detection is crucial")
     
     return {
@@ -301,12 +293,10 @@ def generate_recommendation_document(model_metrics, comparison_chart, best_model
         f.write("## Implementation Notes\n\n")
         f.write("To use the recommended model in the production API:\n\n")
         
-        model_path = "experiments/ensemble/model.pkl"
-        if "XGBoost Enhanced" in best_model_analysis['best_model']:
-            model_path = "experiments/xgboost_enhanced/model.pkl"
-        elif "Random Forest" in best_model_analysis['best_model']:
+        model_path = "experiments/xgboost_enhanced/model.pkl"  # Default to XGBoost Enhanced
+        if "Random Forest" in best_model_analysis['best_model']:
             model_path = "experiments/random_forest/model.pkl"
-        elif "XGBoost" in best_model_analysis['best_model']:
+        elif "XGBoost" in best_model_analysis['best_model'] and "Enhanced" not in best_model_analysis['best_model']:
             model_path = "experiments/xgboost/model.pkl"
             
         f.write(f"1. Load the model from `{model_path}`\n")

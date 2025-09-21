@@ -4,12 +4,14 @@ This file tracks the performance metrics and results for different modeling appr
 
 ## Model Comparison
 
-| Model         | Global Accuracy | Global AUC | South Africa Accuracy | South Africa AUC | Key Features                    |
-| ------------- | --------------- | ---------- | --------------------- | ---------------- | ------------------------------- |
-| Random Forest | TBD             | TBD        | TBD                   | TBD              | Climate + Geographic + Temporal |
-| Rule-based    | N/A             | N/A        | N/A                   | N/A              | Climate thresholds              |
+| Model            | Accuracy | ROC AUC | F1 Score | Sensitivity | Specificity | Avg Precision | Key Features                         |
+| ---------------- | -------- | ------- | -------- | ----------- | ----------- | ------------- | ------------------------------------ |
+| Random Forest    | 0.7548   | 0.8284  | 0.8553   | 1.0000      | 0.1100      | 0.9306        | Climate + Geographic + Temporal      |
+| XGBoost          | 0.7769   | 0.7791  | 0.8657   | 0.9924      | 0.2100      | 0.8915        | Climate + Geographic + Temporal      |
+| XGBoost Enhanced | 0.6970   | 0.6928  | 0.7835   | 0.7567      | 0.5400      | 0.8422        | Enhanced features + SHAP + Selection |
+| Rule-based       | N/A      | N/A     | N/A      | N/A         | N/A         | N/A           | Climate thresholds                   |
 
-_Note: This table will be updated automatically as models are trained_
+_Note: All metrics evaluated on South African validation dataset. XGBoost Enhanced shows more balanced precision/recall._
 
 ## Transfer Learning Effectiveness
 
@@ -521,152 +523,6 @@ Date: 2025-09-07 15:21:37
 - SHAP Summary: `experiments/xgboost_enhanced/shap_summary.png`
 - Precision-Recall: `experiments/xgboost_enhanced/precision_recall_curve.png`
 
-## Ensemble Model Results
-
-**Date**: 2025-09-07 17:30
-
-### Performance Metrics
-
-- **Accuracy**: 0.7521
-- **ROC AUC**: 0.7557
-- **Average Precision**: 0.8885
-- **Sensitivity**: 0.8175
-- **Specificity**: 0.5800
-- **F1 Score**: 0.8269
-
-### Top Features by Importance
-
-| Feature                  | Importance |
-| ------------------------ | ---------- |
-| dist_from_median         | 0.2268     |
-| longitude                | 0.1596     |
-| latitude                 | 0.1335     |
-| elevation                | 0.0384     |
-| day_of_year              | 0.0377     |
-| elev_temp                | 0.0371     |
-| month                    | 0.0234     |
-| precip_seasonality_ratio | 0.0230     |
-| bio6_x_bio14             | 0.0219     |
-| bio13_x_bio15            | 0.0214     |
-| bio6                     | 0.0201     |
-| bio1_x_bio12             | 0.0200     |
-| bio15                    | 0.0194     |
-| bio4_x_bio12             | 0.0188     |
-| bio5_x_bio13             | 0.0185     |
-
-### Model Details
-
-- **Model**: Voting Ensemble of XGBoost and Random Forest
-- **Optimal Threshold**: 0.7850
-- **Trained on**: Global dataset with environmentally stratified background points
-- **Validated on**: South African dataset
-- **Model file**: `experiments/ensemble/model.pkl`
-
-### Visualization
-
-- ROC Curve: `experiments/ensemble/roc_curve.png`
-- Precision-Recall: `experiments/ensemble/precision_recall_curve.png`
-
-## Ensemble Model Results
-
-**Date**: 2025-09-07 18:35
-
-### Performance Metrics
-
-- **Accuracy**: 0.7521
-- **ROC AUC**: 0.7557
-- **Average Precision**: 0.8885
-- **Sensitivity**: 0.8175
-- **Specificity**: 0.5800
-- **F1 Score**: 0.8269
-
-### Top Features by Importance
-
-| Feature                  | Importance |
-| ------------------------ | ---------- |
-| dist_from_median         | 0.2268     |
-| longitude                | 0.1596     |
-| latitude                 | 0.1335     |
-| elevation                | 0.0384     |
-| day_of_year              | 0.0377     |
-| elev_temp                | 0.0371     |
-| month                    | 0.0234     |
-| precip_seasonality_ratio | 0.0230     |
-| bio6_x_bio14             | 0.0219     |
-| bio13_x_bio15            | 0.0214     |
-| bio6                     | 0.0201     |
-| bio1_x_bio12             | 0.0200     |
-| bio15                    | 0.0194     |
-| bio4_x_bio12             | 0.0188     |
-| bio5_x_bio13             | 0.0185     |
-
-### Model Details
-
-- **Model**: Voting Ensemble of XGBoost and Random Forest
-- **Optimal Threshold**: 0.7850
-- **Trained on**: Global dataset with environmentally stratified background points
-- **Validated on**: South African dataset
-- **Model file**: `experiments/ensemble/model.pkl`
-
-### Visualization
-
-- ROC Curve: `experiments/ensemble/roc_curve.png`
-- Precision-Recall: `experiments/ensemble/precision_recall_curve.png`
-
-## Ensemble Model Results
-
-**Date**: 2025-09-07 19:07
-
-### Performance Metrics
-
-- **Accuracy**: 0.7713
-- **ROC AUC**: 0.7557
-- **F1 Score**: 0.8633
-- **Sensitivity**: 0.9962
-- **Specificity**: 0.1800
-- **Average Precision**: 0.8885
-- **Optimal Threshold**: 0.6400
-
-### Confusion Matrix
-
-```
-[[ 18 82 ]
- [ 1 262 ]]
-```
-
-### Top Features by Importance
-
-| Feature                  | Importance |
-| ------------------------ | ---------- |
-| dist_from_median         | 0.2268     |
-| longitude                | 0.1596     |
-| latitude                 | 0.1335     |
-| elevation                | 0.0384     |
-| day_of_year              | 0.0377     |
-| elev_temp                | 0.0371     |
-| month                    | 0.0234     |
-| precip_seasonality_ratio | 0.0230     |
-| bio6_x_bio14             | 0.0219     |
-| bio13_x_bio15            | 0.0214     |
-| bio6                     | 0.0201     |
-| bio1_x_bio12             | 0.0200     |
-| bio15                    | 0.0194     |
-| bio4_x_bio12             | 0.0188     |
-| bio5_x_bio13             | 0.0185     |
-
-### Model Details
-
-- **Model**: Voting Ensemble of XGBoost and Random Forest
-- **Optimal Threshold**: 0.6400
-- **Trained on**: Global dataset with environmentally stratified background points
-- **Validated on**: South African dataset
-- **Model file**: `experiments/ensemble/model.pkl`
-
-### Visualization
-
-- ROC Curve: `experiments/ensemble/roc_curve.png`
-- Precision-Recall: `experiments/ensemble/precision_recall_curve.png`
-
 ## Random Forest Model Results
 
 **Date**: 2025-09-07 19:07
@@ -769,3 +625,76 @@ Date: 2025-09-07 15:21:37
 
 - ROC Curve: `experiments/xgboost/roc_curve.png`
 - Feature Importance: `experiments/xgboost/feature_importance.png`
+
+## XGBoost Enhanced Model Results
+
+**Date**: 2025-09-21 12:48
+
+### Performance Metrics
+
+- **Accuracy**: 0.6970
+- **ROC AUC**: 0.6928
+- **Average Precision**: 0.8422
+- **F1 Score**: 0.7835
+- **Sensitivity (Recall)**: 0.7567
+- **Specificity**: 0.5400
+
+### Top Features by Importance
+
+| Feature          | Importance |
+| ---------------- | ---------- |
+| bio6_x_bio14     | 0.0445     |
+| dist_from_median | 0.0429     |
+| bio1_x_bio13     | 0.0394     |
+| longitude        | 0.0289     |
+| bio5_x_bio6      | 0.0276     |
+| bio6_x_bio13     | 0.0258     |
+| bio1_x_bio14     | 0.0227     |
+| sin_month        | 0.0217     |
+| bio1             | 0.0212     |
+| bio6_x_bio15     | 0.0204     |
+| latitude         | 0.0192     |
+| bio13_x_bio15    | 0.0186     |
+| bio15            | 0.0185     |
+| bio1_x_bio12     | 0.0180     |
+| temp_precip      | 0.0178     |
+
+### Top Features by SHAP Value
+
+| Feature           | SHAP Value |
+| ----------------- | ---------- |
+| dist_from_median  | 0.4519     |
+| longitude         | 0.3501     |
+| latitude          | 0.1958     |
+| bio1_x_bio13      | 0.0335     |
+| elevation_x_bio6  | 0.0304     |
+| bio1              | 0.0277     |
+| sin_month         | 0.0275     |
+| elevation         | 0.0231     |
+| bio14_x_bio15     | 0.0223     |
+| elev_temp         | 0.0218     |
+| bio13             | 0.0203     |
+| cos_month         | 0.0191     |
+| elevation_x_bio13 | 0.0190     |
+| bio6_x_bio14      | 0.0167     |
+| bio13_x_bio15     | 0.0142     |
+
+### Model Details
+
+- **Model**: Enhanced XGBoost Classifier
+- **Improvements**:
+  - Advanced feature engineering (interactions, climate indices)
+  - Feature selection
+  - SHAP-based interpretation
+  - Precision-Recall analysis
+  - Spatial pattern reduction
+- **Trained on**: Global dataset with environmentally stratified background points
+- **Validated on**: South African dataset
+- **Model file**: `experiments/xgboost_enhanced/model.pkl`
+
+### Visualization
+
+- ROC Curve: `experiments/xgboost_enhanced/roc_curve.png`
+- Feature Importance: `experiments/xgboost_enhanced/feature_importance.png`
+- SHAP Summary: `experiments/xgboost_enhanced/shap_summary.png`
+- Precision-Recall: `experiments/xgboost_enhanced/precision_recall_curve.png`
