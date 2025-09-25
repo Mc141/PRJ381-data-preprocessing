@@ -266,6 +266,8 @@ async def create_environmental_grid_with_real_data(lat_min, lat_max, lon_min, lo
     env_data['cos_month'] = np.cos(2 * pi * (env_data['month'] - 1) / 12)
     
     # Fill any missing values with reasonable defaults (better than crashing)
+    # Note: NaNs here reflect real data gaps (e.g., WorldClim nodata over water/tile edges or transient fetch errors).
+    # We use conservative defaults so the grid can be rendered consistently.
     fill_values = {
         'elevation': 500,
         'bio1': 1.6,
@@ -291,7 +293,8 @@ async def create_environmental_grid_with_real_data(lat_min, lat_max, lon_min, lo
             missing_col = env_data[col].isnull().sum()
             if missing_col > 0:
                 print(f"Filling {missing_col} missing values in {col}")
-                env_data[col].fillna(fill_val, inplace=True)
+                # Avoid chained-assignment; assign the filled series back to the DataFrame
+                env_data[col] = env_data[col].fillna(fill_val)
     
     print("Environmental grid with REAL data created successfully")
     return env_data, lat_grid, lon_grid

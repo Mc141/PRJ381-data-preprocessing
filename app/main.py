@@ -29,38 +29,10 @@ DEPENDENCIES FLOW:
 Author: MC141
 Project: PRJ381 - Invasive Species Distribution Modeling
 """
-
 from fastapi import FastAPI
-from app.services.database import connect_to_mongo, close_mongo_connection
-from app.routers import observations, weather, datasets, status, predictions, gbif, worldclim
-# Import new routers
-from app.routers import elevation, weather_direct, environmental
-from contextlib import asynccontextmanager  
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Application lifespan manager for FastAPI.
-    
-    Handles startup and shutdown events for the application, including
-    database connection management.
-    
-    Args:
-        app (FastAPI): The FastAPI application instance
-        
-    Yields:
-        None: Control back to FastAPI during application runtime
-        
-    Note:
-        This ensures MongoDB connections are properly opened at startup
-        and closed at shutdown to prevent connection leaks.
-    """
-    # Startup: Connect to MongoDB
-    connect_to_mongo()
-    yield
-    # Shutdown: Close MongoDB connection
-    close_mongo_connection()
+from app.routers import datasets, status, predictions
+# Keep environmental and elevation routers for data extraction used by predictions
+from app.routers import environmental
 
 
 app = FastAPI(
@@ -128,10 +100,9 @@ Create machine learning datasets from **real global biodiversity data** enriched
 - **Risk Assessment**: Invasion suitability mapping
 - **Model Validation**: Cross-regional performance testing
     """,
-    version="2.1.0",
+    version="3.0.0-minimal",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan,
     contact={
         "name": "Martinus Christoffel Wolmarans", 
         "email": "mc141@example.com"
@@ -146,57 +117,14 @@ Create machine learning datasets from **real global biodiversity data** enriched
             "name": "1. System Status",
             "description": "**START HERE** - Health checks, system monitoring, and dependency verification",
         },
-        {
-            "name": "2. Species Data (GBIF)",
-            "description": "**STEP 2** - Global species occurrence data collection and management",
-        },
-        {
-            "name": "3. Environmental Data", 
-            "description": "**STEP 3** - Real WorldClim climate data download and extraction",
-        },
-        {
-            "name": "4. Dataset Creation",
-            "description": "**STEP 4** - ML-ready dataset generation with environmental enrichment",
-        },
-        {
-            "name": "5. Model Training & Export",
-            "description": "**STEP 5** - Export datasets for Random Forest and ML model training",
-        },
-        {
-            "name": "6. Predictions & Mapping",
-            "description": "**STEP 6** - Invasion risk prediction and visualization mapping",
-        },
-        
-        # UTILITIES & MANAGEMENT
-        {
-            "name": "Weather Data (NASA)",
-            "description": "**OPTIONAL** - Meteorological data integration for enhanced modeling",
-        },
-        
-        # DEPRECATED/LEGACY  
-        {
-            "name": "Legacy (Deprecated)",
-            "description": "**DEPRECATED** - iNaturalist endpoints (replaced by GBIF). Use GBIF endpoints instead.",
-        },
+        {"name": "Datasets", "description": "Generate ML-ready datasets (no DB)"},
+        {"name": "Predictions", "description": "Train model and generate heatmaps (no DB)"},
+        {"name": "Environmental Data", "description": "Real environmental variable extraction used by heatmaps"},
     ]
 )
 
-# Include API routers in logical workflow order
-# CORE PIPELINE
+# Include only the minimal, DB-free API surface
 app.include_router(status.router, prefix="/api/v1", tags=["1. System Status"])
-app.include_router(gbif.router, prefix="/api/v1", tags=["2. Species Data (GBIF)"])
-app.include_router(worldclim.router, prefix="/api/v1", tags=["3. Environmental Data"])
-app.include_router(datasets.router, prefix="/api/v1", tags=["4. Dataset Creation"])
-# Note: Export endpoints are in datasets router but will be tagged differently in individual endpoints
-app.include_router(predictions.router, prefix="/api/v1", tags=["6. Predictions & Mapping"])
-
-# UTILITIES & OPTIONAL
-app.include_router(weather.router, prefix="/api/v1", tags=["Weather Data (NASA)"])
-    
-# DIRECT ENVIRONMENTAL DATA ACCESS (new endpoints for generate_heatmap.py)
-app.include_router(elevation.router, prefix="/api/v1", tags=["3. Environmental Data"])
-app.include_router(weather_direct.router, prefix="/api/v1", tags=["3. Environmental Data"])
-app.include_router(environmental.router, prefix="/api/v1", tags=["3. Environmental Data"])
-
-# DEPRECATED (moved to bottom of Swagger UI)
-app.include_router(observations.router, prefix="/api/v1", tags=["Legacy (Deprecated)"])
+app.include_router(environmental.router, prefix="/api/v1", tags=["Environmental Data"])
+app.include_router(datasets.router, prefix="/api/v1", tags=["Datasets"])
+app.include_router(predictions.router, prefix="/api/v1", tags=["Predictions"])

@@ -83,12 +83,12 @@ Date: 2025-09-04 15:06:16
 - **Model**: XGBoost Classifier
 - **Trained on**: Global dataset with pseudo-absence points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost/model.pkl`
+- **Model file**: `models/xgboost/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost/roc_curve.png`
-- Feature Importance: `experiments/xgboost/feature_importance.png`
+- ROC Curve: `models/xgboost/roc_curve.png`
+- Feature Importance: `models/xgboost/feature_importance.png`
 
 ## XGBoost Model Results
 
@@ -119,12 +119,12 @@ Date: 2025-09-04 15:06:16
 - **Model**: XGBoost Classifier
 - **Trained on**: Global dataset with real presence data and background comparison points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost/model.pkl`
+- **Model file**: `models/xgboost/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost/roc_curve.png`
-- Feature Importance: `experiments/xgboost/feature_importance.png`
+- ROC Curve: `models/xgboost/roc_curve.png`
+- Feature Importance: `models/xgboost/feature_importance.png`
 
 ## XGBoost Model Results
 
@@ -155,12 +155,12 @@ Date: 2025-09-04 15:06:16
 - **Model**: XGBoost Classifier
 - **Trained on**: Global dataset with real presence data and background comparison points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost/model.pkl`
+- **Model file**: `models/xgboost/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost/roc_curve.png`
-- Feature Importance: `experiments/xgboost/feature_importance.png`
+- ROC Curve: `models/xgboost/roc_curve.png`
+- Feature Importance: `models/xgboost/feature_importance.png`
 
 ## Random Forest Model Results
 
@@ -229,11 +229,11 @@ Date: 2025-09-07 15:21:37
 - **Hyperparameters**: Trees=100, Max Depth=15, Min Samples Split=10, Min Samples Leaf=5
 - **Trained on**: Global dataset with pseudo-absence points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/random_forest/model.pkl`
+- **Model file**: `models/random_forest/model.pkl`
 
 ### Visualization
 
-- Feature Importance: `experiments/random_forest/feature_importance.png`
+- Feature Importance: `models/random_forest/feature_importance.png`
 
 ## XGBoost Model Results
 
@@ -265,12 +265,12 @@ Date: 2025-09-07 15:21:37
 - **Hyperparameters**: Tuned via GridSearchCV (best params shown in console)
 - **Trained on**: Global dataset with background comparison points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost/model.pkl`
+- **Model file**: `models/xgboost/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost/roc_curve.png`
-- Feature Importance: `experiments/xgboost/feature_importance.png`
+- ROC Curve: `models/xgboost/roc_curve.png`
+- Feature Importance: `models/xgboost/feature_importance.png`
 
 ## Random Forest Model Results (Optimized)
 
@@ -306,12 +306,12 @@ Date: 2025-09-07 15:21:37
   - min_samples_leaf: 2
 - **Trained on**: Global dataset with background comparison points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/random_forest/model.pkl`
+- **Model file**: `models/random_forest/model.pkl`
 
 ### Visualization
 
-- Feature Importance: `experiments/random_forest/feature_importance.png`
-- ROC Curve: `experiments/random_forest/roc_curve.png`
+- Feature Importance: `models/random_forest/feature_importance.png`
+- ROC Curve: `models/random_forest/roc_curve.png`
 
 ## XGBoost Enhanced Model Results
 
@@ -374,14 +374,14 @@ Date: 2025-09-07 15:21:37
   - Spatial pattern reduction
 - **Trained on**: Global dataset with environmentally stratified background points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost_enhanced/model.pkl`
+- **Model file**: `models/xgboost_enhanced/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost_enhanced/roc_curve.png`
-- Feature Importance: `experiments/xgboost_enhanced/feature_importance.png`
-- SHAP Summary: `experiments/xgboost_enhanced/shap_summary.png`
-- Precision-Recall: `experiments/xgboost_enhanced/precision_recall_curve.png`
+- ROC Curve: `models/xgboost_enhanced/roc_curve.png`
+- Feature Importance: `models/xgboost_enhanced/feature_importance.png`
+- SHAP Summary: `models/xgboost_enhanced/shap_summary.png`
+- Precision-Recall: `models/xgboost_enhanced/precision_recall_curve.png`
 
 ## XGBoost Enhanced Model Results
 
@@ -444,14 +444,14 @@ Date: 2025-09-07 15:21:37
   - Spatial pattern reduction
 - **Trained on**: Global dataset with environmentally stratified background points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost_enhanced/model.pkl`
+- **Model file**: `models/xgboost_enhanced/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost_enhanced/roc_curve.png`
-- Feature Importance: `experiments/xgboost_enhanced/feature_importance.png`
-- SHAP Summary: `experiments/xgboost_enhanced/shap_summary.png`
-- Precision-Recall: `experiments/xgboost_enhanced/precision_recall_curve.png`
+- ROC Curve: `models/xgboost_enhanced/roc_curve.png`
+- Feature Importance: `models/xgboost_enhanced/feature_importance.png`
+- SHAP Summary: `models/xgboost_enhanced/shap_summary.png`
+- Precision-Recall: `models/xgboost_enhanced/precision_recall_curve.png`
 
 ## XGBoost Enhanced Model Results
 
@@ -514,14 +514,14 @@ Date: 2025-09-07 15:21:37
   - Spatial pattern reduction
 - **Trained on**: Global dataset with environmentally stratified background points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost_enhanced/model.pkl`
+- **Model file**: `models/xgboost_enhanced/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost_enhanced/roc_curve.png`
-- Feature Importance: `experiments/xgboost_enhanced/feature_importance.png`
-- SHAP Summary: `experiments/xgboost_enhanced/shap_summary.png`
-- Precision-Recall: `experiments/xgboost_enhanced/precision_recall_curve.png`
+- ROC Curve: `models/xgboost_enhanced/roc_curve.png`
+- Feature Importance: `models/xgboost_enhanced/feature_importance.png`
+- SHAP Summary: `models/xgboost_enhanced/shap_summary.png`
+- Precision-Recall: `models/xgboost_enhanced/precision_recall_curve.png`
 
 ## Random Forest Model Results
 
@@ -569,12 +569,12 @@ Date: 2025-09-07 15:21:37
   - min_samples_leaf: 2
 - **Trained on**: Global dataset with background comparison points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/random_forest/model.pkl`
+- **Model file**: `models/random_forest/model.pkl`
 
 ### Visualization
 
-- Feature Importance: `experiments/random_forest/feature_importance.png`
-- ROC Curve: `experiments/random_forest/roc_curve.png`
+- Feature Importance: `models/random_forest/feature_importance.png`
+- ROC Curve: `models/random_forest/roc_curve.png`
 
 ## XGBoost Model Results
 
@@ -619,12 +619,12 @@ Date: 2025-09-07 15:21:37
 - **Optimal Threshold**: 0.5700
 - **Trained on**: Global dataset with background comparison points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost/model.pkl`
+- **Model file**: `models/xgboost/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost/roc_curve.png`
-- Feature Importance: `experiments/xgboost/feature_importance.png`
+- ROC Curve: `models/xgboost/roc_curve.png`
+- Feature Importance: `models/xgboost/feature_importance.png`
 
 ## XGBoost Enhanced Model Results
 
@@ -690,11 +690,11 @@ Date: 2025-09-07 15:21:37
   - Spatial pattern reduction
 - **Trained on**: Global dataset with environmentally stratified background points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost_enhanced/model.pkl`
+- **Model file**: `models/xgboost_enhanced/model.pkl`
 
 ### Visualization
 
-- ROC Curve: `experiments/xgboost_enhanced/roc_curve.png`
-- Feature Importance: `experiments/xgboost_enhanced/feature_importance.png`
-- SHAP Summary: `experiments/xgboost_enhanced/shap_summary.png`
-- Precision-Recall: `experiments/xgboost_enhanced/precision_recall_curve.png`
+- ROC Curve: `models/xgboost_enhanced/roc_curve.png`
+- Feature Importance: `models/xgboost_enhanced/feature_importance.png`
+- SHAP Summary: `models/xgboost_enhanced/shap_summary.png`
+- Precision-Recall: `models/xgboost_enhanced/precision_recall_curve.png`

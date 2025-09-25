@@ -40,7 +40,7 @@
 
 To use the recommended model in the production API:
 
-1. Load the model from `experiments/xgboost/model.pkl`
+1. Load the model from `models/xgboost/model.pkl`
 2. Use the same feature engineering steps as in the training script
 3. Apply the optimal classification threshold for balanced predictions
 4. Consider updating the model periodically as new data becomes available

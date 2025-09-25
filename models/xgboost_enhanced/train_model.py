@@ -703,13 +703,13 @@ def append_results_to_markdown(accuracy, roc_auc, avg_precision, feature_importa
   - Spatial pattern reduction
 - **Trained on**: Global dataset with environmentally stratified background points
 - **Validated on**: South African dataset
-- **Model file**: `experiments/xgboost_enhanced/model.pkl`
+- **Model file**: `models/xgboost_enhanced/model.pkl`
 
 ### Visualization
-- ROC Curve: `experiments/xgboost_enhanced/roc_curve.png`
-- Feature Importance: `experiments/xgboost_enhanced/feature_importance.png`
-- SHAP Summary: `experiments/xgboost_enhanced/shap_summary.png`
-- Precision-Recall: `experiments/xgboost_enhanced/precision_recall_curve.png`
+- ROC Curve: `models/xgboost_enhanced/roc_curve.png`
+- Feature Importance: `models/xgboost_enhanced/feature_importance.png`
+- SHAP Summary: `models/xgboost_enhanced/shap_summary.png`
+- Precision-Recall: `models/xgboost_enhanced/precision_recall_curve.png`
 
 """
     

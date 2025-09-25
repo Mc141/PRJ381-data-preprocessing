@@ -31,12 +31,14 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV
 
-# Import standardized metrics calculation utilities
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from metrics_utils import calculate_standard_metrics, find_optimal_threshold, report_metrics_markdown
-
 # Add the root project directory to path so we can import from app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+# Import standardized metrics calculation utilities from app
+from app.utils.metrics_utils import (
+    calculate_standard_metrics,
+    find_optimal_threshold,
+    report_metrics_markdown,
+)
 
 # Set paths
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data'))
@@ -327,11 +329,11 @@ def append_results_to_markdown(metrics, optimal_threshold, feature_importance):
         f.write("- **Optimal Threshold**: {optimal_threshold:.4f}\n")
         f.write("- **Trained on**: Global dataset with background comparison points\n")
         f.write("- **Validated on**: South African dataset\n")
-        f.write("- **Model file**: `experiments/xgboost/model.pkl`\n\n")
+        f.write("- **Model file**: `models/xgboost/model.pkl`\n\n")
         
         f.write("### Visualization\n")
-        f.write("- ROC Curve: `experiments/xgboost/roc_curve.png`\n")
-        f.write("- Feature Importance: `experiments/xgboost/feature_importance.png`\n")
+        f.write("- ROC Curve: `models/xgboost/roc_curve.png`\n")
+        f.write("- Feature Importance: `models/xgboost/feature_importance.png`\n")
     
     print("Results appended successfully.")
 

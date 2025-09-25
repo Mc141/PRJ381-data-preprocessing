@@ -8,7 +8,7 @@ A comprehensive FastAPI service for preprocessing global invasive species data u
 
 The project features a sophisticated map generation system for visualizing invasion risk:
 
-- **Enhanced Interactive Maps**: `experiments/xgboost_enhanced/generate_heatmap_api.py`
+- **Enhanced Interactive Maps**: `models/xgboost_enhanced/generate_heatmap_api.py`
 - **Multi-season Comparison**: Toggle between different months (e.g., January, June, December)
 - **Known Invasion Sites**: Overlay documented Pyracantha locations with severity indicators
 - **High-Resolution Support**: Adjustable grid resolution up to 30x30 points
@@ -17,7 +17,7 @@ The project features a sophisticated map generation system for visualizing invas
 
 ```bash
 # Generate enhanced invasion risk map with seasonal comparison
-python -m experiments.xgboost_enhanced.generate_heatmap_api --grid_size 20 --months 1,6,12
+python -m models.xgboost_enhanced.generate_heatmap_api --grid_size 20 --months 1,6,12
 ```
 
 ---**transfer learning** applications where models are trained on worldwide distribution patterns and validated on local South African data.
@@ -242,7 +242,7 @@ graph LR
 - **Seasonal Intelligence**: Model learned that 66% of observations occur during autumn flowering
 - **Enhanced Visualization Tool**: Multi-season comparison maps with known invasion site overlays
 
-- **Machine Learning Experiments** (`experiments/random_forest/`)
+- **Machine Learning Models** (`models/random_forest/`)
 
   - **Random Forest Classifier**: 400 trees with cyclic seasonal features
   - **Advanced Features**: 59 environmental, temporal, and cyclic seasonal variables

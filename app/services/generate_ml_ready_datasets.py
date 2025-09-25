@@ -1,11 +1,11 @@
 """
 Generate ML-ready datasets (global_training_ml_ready.csv and local_validation_ml_ready.csv)
-without using the database. This script fetches GBIF occurrences directly, enriches them
+without using the database. This module fetches GBIF occurrences directly, enriches them
 with WorldClim climate variables and SRTM elevation, computes temporal features, and writes
 the standardized 17-feature CSVs into the repository's `data/` folder (overwriting if they exist).
 
 Usage (from repo root):
-  python experiments/generate_ml_ready_datasets.py \
+  python -m app.services.generate_ml_ready_datasets \
     --max-global 2000 --max-local 500 --batch-size 100 --verbose
 
 Notes:
@@ -21,34 +21,30 @@ import argparse
 import logging
 import math
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-# Ensure repo root is importable when running from anywhere
+# Ensure repo root is importable when running from anywhere.
 THIS_FILE = Path(__file__).resolve()
-REPO_ROOT = THIS_FILE.parents[1]
+# app/services/<file> -> parents[0]=services, [1]=app, [2]=repo root
+REPO_ROOT = THIS_FILE.parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from app.services.gbif_fetcher import GBIFFetcher
-from app.services.worldclim_extractor import get_worldclim_extractor
-from app.services.elevation_extractor import get_elevation_extractor
-
+from app.services.gbif_fetcher import GBIFFetcher  # noqa: E402
+from app.services.worldclim_extractor import get_worldclim_extractor  # noqa: E402
+from app.services.elevation_extractor import get_elevation_extractor  # noqa: E402
 
 logger = logging.getLogger("generate_ml_ready_datasets")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-
 REQUIRED_FEATURES = [
-    # Location (3)
     "latitude",
     "longitude",
     "elevation",
-    # Climate (8)
     "bio1",
     "bio4",
     "bio5",
@@ -57,7 +53,6 @@ REQUIRED_FEATURES = [
     "bio13",
     "bio14",
     "bio15",
-    # Temporal (4)
     "month",
     "day_of_year",
     "sin_month",
@@ -68,33 +63,29 @@ CLIMATE_VARIABLES = ["bio1", "bio4", "bio5", "bio6", "bio12", "bio13", "bio14", 
 
 
 def _to_day_of_year(year: Optional[int], month: Optional[int], day: Optional[int], event_date: Optional[str]) -> Optional[int]:
-    """Compute day-of-year from fields if possible."""
     try:
         if year and month and day:
             return int(pd.Timestamp(year=int(year), month=int(month), day=int(day)).day_of_year)
         if event_date:
             return int(pd.to_datetime(event_date, errors="coerce").day_of_year)
-    except Exception:
+    except Exception:  # pragma: no cover - defensive
         return None
     return None
 
 
 def _compute_temporal_features(rec: Dict[str, Any]) -> Dict[str, Any]:
     month = rec.get("month")
-    if month is None:
-        # Try parsing from event_date if available
+    if month is None and rec.get("event_date"):
         try:
-            if rec.get("event_date"):
-                ts = pd.to_datetime(rec["event_date"], errors="coerce")
-                if pd.notna(ts):
-                    month = int(ts.month)
-        except Exception:
+            ts = pd.to_datetime(rec["event_date"], errors="coerce")
+            if pd.notna(ts):
+                month = int(ts.month)
+        except Exception:  # pragma: no cover
             month = None
 
     day_of_year = _to_day_of_year(rec.get("year"), rec.get("month"), rec.get("day"), rec.get("event_date"))
 
-    sin_m = None
-    cos_m = None
+    sin_m = cos_m = None
     if month is not None and 1 <= int(month) <= 12:
         angle = 2 * math.pi * (int(month) - 1) / 12.0
         sin_m = math.sin(angle)
@@ -109,8 +100,7 @@ def _compute_temporal_features(rec: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def _fetch_occurrences(max_records: Optional[int], country: Optional[str]) -> List[Dict[str, Any]]:
-    """Fetch GBIF occurrences using the internal fetcher with quality filters."""
-    async def _noop_progress(current: int, total: int, percentage: float):
+    async def _noop_progress(current: int, total: int, percentage: float):  # noqa: ARG001
         return None
 
     async with GBIFFetcher() as fetcher:
@@ -123,62 +113,53 @@ async def _fetch_occurrences(max_records: Optional[int], country: Optional[str])
             country=country,
         )
 
-    # Process/normalize fields (mirror router's processor as much as needed)
-    # Minimal fields required for our pipeline
     processed: List[Dict[str, Any]] = []
     for r in occurrences:
         try:
-            processed.append({
-                "latitude": r.get("decimalLatitude"),
-                "longitude": r.get("decimalLongitude"),
-                "event_date": r.get("eventDate"),
-                "year": r.get("year"),
-                "month": r.get("month"),
-                "day": r.get("day"),
-            })
-        except Exception:
+            processed.append(
+                {
+                    "latitude": r.get("decimalLatitude"),
+                    "longitude": r.get("decimalLongitude"),
+                    "event_date": r.get("eventDate"),
+                    "year": r.get("year"),
+                    "month": r.get("month"),
+                    "day": r.get("day"),
+                }
+            )
+        except Exception:  # pragma: no cover
             continue
 
-    # Filter to valid coordinates
     processed = [r for r in processed if r.get("latitude") is not None and r.get("longitude") is not None]
     return processed
 
 
 async def _enrich_environmental(records: List[Dict[str, Any]], batch_size: int, verbose: bool) -> pd.DataFrame:
-    """Batch enrich records with WorldClim climate variables and elevation."""
     if not records:
         return pd.DataFrame(columns=REQUIRED_FEATURES)
 
-    coords: List[Tuple[float, float]] = [
-        (float(r["latitude"]), float(r["longitude"])) for r in records
-    ]
+    coords: List[Tuple[float, float]] = [(float(r["latitude"]), float(r["longitude"])) for r in records]
 
     worldclim = get_worldclim_extractor()
     elevation = get_elevation_extractor()
 
-    # Process in batches to be gentle on services and memory
     climate_rows: List[Dict[str, Any]] = []
     elevation_rows: List[Dict[str, Any]] = []
 
     async with worldclim, elevation:
         for i in range(0, len(coords), batch_size):
-            chunk = coords[i:i + batch_size]
+            chunk = coords[i : i + batch_size]
             if verbose:
                 logger.info(f"Processing environmental batch {i + 1}-{i + len(chunk)} of {len(coords)}")
-
             climate_task = worldclim.extract_climate_batch(chunk, CLIMATE_VARIABLES)
             elev_task = elevation.extract_elevation_batch(chunk)
             c_res, e_res = await asyncio.gather(climate_task, elev_task)
-
             climate_rows.extend(c_res)
             elevation_rows.extend(e_res)
 
-    # Combine into DataFrame
     df_env = pd.DataFrame(climate_rows)
     if "elevation" not in df_env.columns:
         df_env["elevation"] = np.nan
 
-    # Elevation results may be dicts with elevation key
     elev_vals = []
     for e in elevation_rows:
         if isinstance(e, dict) and e is not None:
@@ -186,9 +167,7 @@ async def _enrich_environmental(records: List[Dict[str, Any]], batch_size: int, 
         else:
             elev_vals.append(None)
 
-    # Ensure same length
     if len(elev_vals) != len(df_env):
-        # Align by length; if mismatch, pad with None
         needed = len(df_env) - len(elev_vals)
         if needed > 0:
             elev_vals.extend([None] * needed)
@@ -196,36 +175,27 @@ async def _enrich_environmental(records: List[Dict[str, Any]], batch_size: int, 
             elev_vals = elev_vals[: len(df_env)]
 
     df_env["elevation"] = elev_vals
-
-    # Attach lat/lon
     df_env["latitude"] = [c[0] for c in coords]
     df_env["longitude"] = [c[1] for c in coords]
 
-    # Compute temporal features per record alignment
     temporal_records = [_compute_temporal_features(r) for r in records]
     df_tmp = pd.DataFrame(temporal_records)
-
     df = pd.concat([df_env.reset_index(drop=True), df_tmp.reset_index(drop=True)], axis=1)
 
-    # Enforce required columns order and types; add missing columns if any
     for col in REQUIRED_FEATURES:
         if col not in df.columns:
             df[col] = np.nan
 
     df = df[REQUIRED_FEATURES]
 
-    # Coerce to numeric
     for col in df.columns:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Drop rows missing any climate var or month/sin/cos
     df = df.dropna(subset=CLIMATE_VARIABLES + ["month", "sin_month", "cos_month"]).copy()
-
     return df
 
 
 def _write_csv(df: pd.DataFrame, path: Path, verbose: bool) -> None:
-    # Round floats for consistency
     for col in df.columns:
         if pd.api.types.is_float_dtype(df[col]):
             df[col] = df[col].round(6)
@@ -279,9 +249,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         logger.setLevel(logging.INFO)
     try:
         asyncio.run(run(args.max_global, args.max_local, args.batch_size, args.verbose))
-    except KeyboardInterrupt:
+    except KeyboardInterrupt:  # pragma: no cover
         logger.warning("Cancelled by user")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

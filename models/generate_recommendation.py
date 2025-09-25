@@ -293,11 +293,11 @@ def generate_recommendation_document(model_metrics, comparison_chart, best_model
         f.write("## Implementation Notes\n\n")
         f.write("To use the recommended model in the production API:\n\n")
         
-        model_path = "experiments/xgboost_enhanced/model.pkl"  # Default to XGBoost Enhanced
+        model_path = "models/xgboost_enhanced/model.pkl"  # Default to XGBoost Enhanced
         if "Random Forest" in best_model_analysis['best_model']:
-            model_path = "experiments/random_forest/model.pkl"
+            model_path = "models/random_forest/model.pkl"
         elif "XGBoost" in best_model_analysis['best_model'] and "Enhanced" not in best_model_analysis['best_model']:
-            model_path = "experiments/xgboost/model.pkl"
+            model_path = "models/xgboost/model.pkl"
             
         f.write(f"1. Load the model from `{model_path}`\n")
         f.write("2. Use the same feature engineering steps as in the training script\n")
