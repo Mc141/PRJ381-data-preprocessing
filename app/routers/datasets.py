@@ -9,22 +9,35 @@ router = APIRouter()
 
 @router.post(
     "/datasets/generate-ml-ready-files",
-    summary="Generate ML-ready CSVs without DB",
+    summary="Generate ML-ready CSVs",
     description=(
-        "Runs the internal generator to write "
+        "Run the internal dataset generator to produce "
         "data/global_training_ml_ready.csv and data/local_validation_ml_ready.csv, "
-        "overwriting existing files. Returns success/failure only."
+        "overwriting any existing files. Returns success or failure."
     ),
     response_model=Dict[str, Any],
     tags=["5. Model Training & Export"],
 )
 async def generate_ml_ready_files(
-    max_global: Optional[int] = Query(None, description="Limit global records (omit for all)"),
-    max_local: Optional[int] = Query(None, description="Limit local ZA records (omit for all)"),
-    batch_size: int = Query(100, description="Batch size for environmental extraction"),
-    verbose: bool = Query(False, description="Enable verbose logging"),
+    max_global: Optional[int] = Query(None, description="Maximum number of global records (omit for all)"),
+    max_local: Optional[int] = Query(None, description="Maximum number of local South African records (omit for all)"),
+    batch_size: int = Query(100, description="Batch size for environmental data extraction"),
+    verbose: bool = Query(False, description="Enable verbose logging output"),
 ) -> Dict[str, Any]:
-    """Generate ML-ready datasets to canonical files without using the database."""
+    """
+    Generate machine learning-ready datasets and write them to canonical CSV files.
+
+    This endpoint runs the internal dataset generator, producing standardized CSV files for model training and validation. Existing files will be overwritten.
+
+    Args:
+        max_global (Optional[int]): Limit the number of global records (omit for all).
+        max_local (Optional[int]): Limit the number of local South African records (omit for all).
+        batch_size (int): Batch size for environmental data extraction.
+        verbose (bool): Enable verbose logging for detailed output.
+
+    Returns:
+        Dict[str, Any]: Status, written file paths, and a success message.
+    """
     try:
         repo_root = Path(__file__).resolve().parents[2]
         if str(repo_root) not in sys.path:

@@ -1,9 +1,11 @@
 """
-Prediction router for invasive species spread modeling.
+Prediction Router for Invasive Species Spread Modeling
 
-This module implements a simple ecological niche model for Pyracantha angustifolia
-based on recent observations and environmental suitability scoring across the
-greater Cape Town metropolitan area.
+This module provides API endpoints and utilities for ecological niche modeling of
+Pyracantha angustifolia. It leverages recent observations and environmental suitability
+scoring to support global risk assessment, heatmap generation, and model training.
+Endpoints include risk heatmap generation, model training, and core functions for suitability scoring and grid generation.
+All documentation and comments are aligned with the current service and written in a clear, professional style.
 """
 
 import math
@@ -22,12 +24,13 @@ import logging
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-# Ecological preferences for Pyracantha angustifolia
-OPTIMAL_TEMP = (10, 25)  # °C
-OPTIMAL_PRECIP = (20, 100)  # mm/month
-SPREAD_RADIUS_KM = 2.0  # km radius for distance decay
 
-# Cape Town region bounding box (matches iNaturalist fetcher)
+# Ecological preferences for Pyracantha angustifolia
+OPTIMAL_TEMP = (10, 25)  # Optimal temperature range in °C
+OPTIMAL_PRECIP = (20, 100)  # Optimal monthly precipitation in mm
+SPREAD_RADIUS_KM = 2.0  # Distance decay radius in kilometers
+
+# Cape Town region bounding box (aligned with iNaturalist fetcher)
 CAPE_TOWN_BOUNDS = {
     "min_lat": -34.43214105152007,
     "max_lat": -33.806848821450004,
@@ -38,14 +41,15 @@ CAPE_TOWN_BOUNDS = {
 
 def suitability_score(temp: float, precip: float) -> float:
     """
-    Calculate habitat suitability score based on temperature and precipitation.
-    
+    Compute the habitat suitability score for Pyracantha angustifolia based on
+    temperature and precipitation.
+
     Args:
-        temp (float): Average temperature in °C
-        precip (float): Monthly precipitation in mm
-        
+        temp (float): Average temperature in degrees Celsius.
+        precip (float): Monthly precipitation in millimeters.
+
     Returns:
-        float: Suitability score between 0 and 1
+        float: Suitability score in the range [0, 1].
     """
     # Temperature scoring
     if OPTIMAL_TEMP[0] <= temp <= OPTIMAL_TEMP[1]:
@@ -68,27 +72,28 @@ def suitability_score(temp: float, precip: float) -> float:
 
 def distance_decay(distance_km: float) -> float:
     """
-    Calculate distance decay factor for spread probability.
-    
+    Calculate the distance decay factor for spread probability.
+    Models the likelihood of spread as a function of distance from a known observation.
+
     Args:
-        distance_km (float): Distance from known observation in km
-        
+        distance_km (float): Distance from a known observation in kilometers.
+
     Returns:
-        float: Decay factor between 0 and 1
+        float: Decay factor in the range [0, 1].
     """
     return math.exp(-distance_km / SPREAD_RADIUS_KM)
 
 
 def create_grid(bounds: Dict, resolution_km: float = 0.5) -> List[Dict]:
     """
-    Create a grid of points covering the study area.
-    
+    Generate a grid of latitude/longitude points covering the specified study area.
+
     Args:
-        bounds (Dict): Bounding box with min/max lat/lon
-        resolution_km (float): Grid resolution in kilometers
-        
+        bounds (Dict): Bounding box with 'min_lat', 'max_lat', 'min_lon', 'max_lon'.
+        resolution_km (float): Grid resolution in kilometers.
+
     Returns:
-        List[Dict]: List of grid points with lat/lon
+        List[Dict]: List of grid points, each with 'latitude' and 'longitude'.
     """
     # Approximate conversion: 1 degree ≈ 111 km
     lat_step = resolution_km / 111.0
@@ -116,51 +121,38 @@ def create_grid(bounds: Dict, resolution_km: float = 0.5) -> List[Dict]:
 
 @router.post("/predictions/generate-xgboost-heatmap")
 async def generate_xgboost_heatmap(
-    # Geographic area options
-    region: str = Query("western_cape_core", description="Predefined region: western_cape_core, western_cape_extended, stellenbosch, garden_route, custom"),
+    region: str = Query(
+        "western_cape_core",
+        description="Predefined region: western_cape_core, western_cape_extended, stellenbosch, garden_route, custom"
+    ),
     lat_min: Optional[float] = Query(None, description="Minimum latitude (required for custom region)"),
     lat_max: Optional[float] = Query(None, description="Maximum latitude (required for custom region)"),
     lon_min: Optional[float] = Query(None, description="Minimum longitude (required for custom region)"),
     lon_max: Optional[float] = Query(None, description="Maximum longitude (required for custom region)"),
-    
-    # Prediction parameters
-    grid_size: int = Query(20, ge=5, le=100, description="Grid size (5-100). Higher = more detail but slower"),
+    grid_size: int = Query(20, ge=5, le=100, description="Grid size (5-100). Higher values increase detail but slow processing"),
     month: int = Query(3, ge=1, le=12, description="Month (1-12) for seasonal prediction"),
-    
-    # Performance options
     batch_size: int = Query(20, ge=5, le=100, description="API batch size (5-100)"),
     rate_limit_delay: float = Query(1.0, ge=0.1, le=10.0, description="Delay between batches in seconds"),
-    
-    # Output options
     include_stats: bool = Query(True, description="Include statistics panel on map"),
     return_html: bool = Query(True, description="Return HTML content in response"),
     save_file: bool = Query(False, description="Save HTML file to disk"),
     download: bool = Query(False, description="Return the generated HTML as a downloadable file (attachment)")
 ):
     """
-    Generate a high-resolution invasion risk heatmap using the trained XGBoost model and real API data.
-    
-    This endpoint runs the heatmap generation script programmatically and returns the generated HTML map.
-    It uses the same XGBoost model and real environmental data as the command-line script.
-    
-    **Geographic Regions:**
-    - `western_cape_core`: Cape Town metropolitan area (default)
-    - `western_cape_extended`: Larger Western Cape region
-    - `stellenbosch`: Stellenbosch wine region
-    - `garden_route`: Garden Route region
-    - `custom`: Use custom lat/lon bounds (requires lat_min, lat_max, lon_min, lon_max)
-    
-    **Performance Notes:**
-    - Higher grid_size = more detail but longer processing time
-    - Estimated time: ~1-3 minutes for grid_size=20, ~5-15 minutes for grid_size=50
-    - Uses real-time API calls to fetch environmental data for each grid point
-    
-        **Returns:**
-        - If `download=True`: an HTML file response (attachment) for direct download
-        - Else JSON containing:
-            - HTML content of the interactive map (if return_html=True)
-            - Generation statistics and metadata
-            - Optional file save location (if save_file=True)
+    Generate a high-resolution invasion risk heatmap using the trained XGBoost model and real-time environmental data.
+
+    This endpoint runs the heatmap generation script and returns the resulting HTML map. It uses the XGBoost model and up-to-date environmental data.
+
+    Geographic Regions:
+        - western_cape_core: Cape Town metropolitan area (default)
+        - western_cape_extended: Broader Western Cape region
+        - stellenbosch: Stellenbosch wine region
+        - garden_route: Garden Route region
+        - custom: User-specified bounds (requires lat_min, lat_max, lon_min, lon_max)
+
+    Returns:
+        - If download=True: HTML file response for direct download
+        - Otherwise: JSON with HTML content (if return_html=True), generation statistics, and optional file save location (if save_file=True)
     """
     try:
         import asyncio  # noqa: F401 (reserved for potential future async offloading)
@@ -340,18 +332,18 @@ async def generate_xgboost_heatmap(
 async def train_xgboost_model_endpoint(
     save_artifacts: bool = Query(True, description="Save model and plots to disk"),
     return_metrics: bool = Query(True, description="Include metrics in response"),
-    limit_rows: int = Query(0, ge=0, description="Optional: Subsample rows from training data for faster runs (0 = no limit)"),
+    limit_rows: int = Query(0, ge=0, description="Optionally subsample training data for faster runs (0 = no limit)"),
 ):
     """
-    Train the XGBoost model using the standardized training pipeline and return results.
+    Train the XGBoost model using the standardized pipeline and return training results.
 
-    This endpoint imports the training script in `models/xgboost/train_model_api.py`,
-    runs the full pipeline (load data, train with GridSearchCV, evaluate, save artifacts),
-    and returns key metrics and artifact locations.
+    This endpoint imports and executes the training script in models/xgboost/train_model_api.py,
+    running the full pipeline: data loading, model training (with GridSearchCV), evaluation, and artifact saving.
+    Key metrics and artifact locations are returned in the response.
 
     Notes:
-    - This operation can take several minutes depending on data size and environment.
-    - Use `limit_rows` to run a quicker subsampled training for sanity checks.
+        - Training may take several minutes depending on data size and environment.
+        - Use limit_rows to subsample data for a faster, approximate run.
     """
     try:
         import asyncio

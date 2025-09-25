@@ -1,18 +1,18 @@
 """
 Elevation Data Extractor
-========================
+=======================
 
-This module provides elevation data extraction using SRTM (Shuttle Radar Topography Mission) 
-digital elevation models via the Open-Topo-Data API. It follows the same patterns and 
-data integrity policies as the WorldClim extractor.
+This module provides elevation data extraction using SRTM (Shuttle Radar Topography Mission)
+digital elevation models via the Open-Topo-Data API. It is designed to match the data integrity
+and error handling standards of the WorldClim extractor.
 
 Features:
-- SRTM 30m resolution elevation data
-- Batch processing for multiple coordinates  
-- Real data only - returns NaN when unavailable
-- Caching for performance optimization
-- Integration with GBIF occurrence data enrichment
-- Same error handling patterns as WorldClim service
+    - SRTM 30m resolution elevation data
+    - Batch processing for multiple coordinates
+    - Real data only (returns NaN when unavailable)
+    - Caching for performance optimization
+    - Integration with GBIF occurrence data enrichment
+    - Consistent error handling with WorldClim service
 
 Data Source: NASA SRTM via Open-Topo-Data API (https://www.opentopodata.org/)
 Resolution: ~30m (1 arc-second)
@@ -32,31 +32,39 @@ import time
 logger = logging.getLogger(__name__)
 
 
+
 class ElevationDataError(Exception):
-    """Custom exception for elevation data errors."""
+    """
+    Custom exception for elevation data errors.
+    """
     pass
 
 
+
 class ElevationExtractor:
-    """Extract elevation data from SRTM digital elevation models."""
-    
+    """
+    Extract elevation data from SRTM digital elevation models.
+    """
+
     def __init__(self, base_url: str = "https://api.opentopodata.org/v1/srtm30m"):
         """
         Initialize the elevation extractor.
-        
+
         Args:
-            base_url: Base URL for Open-Topo-Data API
+            base_url (str): Base URL for the Open-Topo-Data API.
         """
         self.base_url = base_url
         self.session = None
         self._cache = {}  # Simple in-memory cache
-        
+
         # Rate limiting to respect API limits
         self.last_request_time = 0
-        self.min_request_interval = 0.5  # 500ms between requests - more conservative default
-        
+        self.min_request_interval = 0.5  # 500ms between requests (conservative default)
+
     async def __aenter__(self):
-        """Async context manager entry."""
+        """
+        Async context manager entry.
+        """
         self.session = aiohttp.ClientSession()
         return self
         

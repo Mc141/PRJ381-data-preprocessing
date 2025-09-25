@@ -1,10 +1,11 @@
+
 """
 Environmental Data Router
 ========================
 
-API endpoints for retrieving combined environmental data (climate + elevation)
-for specific coordinates. Provides a convenient way to get all environmental 
-data needed for the model in a single API call.
+API endpoints for retrieving combined environmental data (climate and elevation)
+for specific coordinates. Provides a unified interface to obtain all environmental
+variables required for modeling in a single API call.
 """
 
 from fastapi import APIRouter, HTTPException, Query, Body
@@ -24,47 +25,43 @@ logger = logging.getLogger(__name__)
 # Create router
 router = APIRouter()
 
+
 class CoordinatePoint(BaseModel):
-    latitude: float = Field(..., ge=-90, le=90, description="Latitude in decimal degrees")
-    longitude: float = Field(..., ge=-180, le=180, description="Longitude in decimal degrees")
-    
+    latitude: float = Field(..., ge=-90, le=90, description="Latitude in decimal degrees.")
+    longitude: float = Field(..., ge=-180, le=180, description="Longitude in decimal degrees.")
+
     @validator('latitude')
     def validate_latitude(cls, v):
         if not -90 <= v <= 90:
-            raise ValueError("Latitude must be between -90 and 90")
+            raise ValueError("Latitude must be between -90 and 90.")
         return v
-    
+
     @validator('longitude')
     def validate_longitude(cls, v):
         if not -180 <= v <= 180:
-            raise ValueError("Longitude must be between -180 and 180")
+            raise ValueError("Longitude must be between -180 and 180.")
         return v
 
-class CoordinateListRequest(BaseModel):
-    coordinates: List[CoordinatePoint] = Field(..., description="List of coordinates to process")
 
-@router.post("/environmental/extract-batch",
-            summary="Extract Environmental Data Batch",
-            description="Extract combined climate and elevation data for multiple coordinates efficiently",
-            response_model=Dict[str, Any])
+class CoordinateListRequest(BaseModel):
+    coordinates: List[CoordinatePoint] = Field(..., description="List of coordinates to process.")
+
+@router.post(
+    "/environmental/extract-batch",
+    summary="Extract Environmental Data Batch",
+    description="Extract combined climate and elevation data for multiple coordinates efficiently.",
+    response_model=Dict[str, Any],
+)
 async def extract_environmental_batch(
     request: CoordinateListRequest,
     variables: Optional[List[str]] = Query(None, description="Climate variables to extract")
 ) -> Dict[str, Any]:
     """
-    Extract combined environmental data (climate + elevation) for multiple coordinates efficiently.
-    
-    Request body should contain a list of coordinates:
-    ```json
-    {
-        "coordinates": [
-            {"latitude": -33.925, "longitude": 18.424},
-            {"latitude": -33.895, "longitude": 18.505}
-        ]
-    }
-    ```
-    
-    Returns a batch of environmental data results (climate + elevation).
+    Extract combined climate and elevation data for multiple coordinates.
+
+    The request body should contain a list of coordinates as:
+        {"coordinates": [{"latitude": -33.925, "longitude": 18.424}, ...]}
+    Returns a dictionary with request metadata and a list of results for each coordinate.
     """
     try:
         coordinates = [(point.latitude, point.longitude) for point in request.coordinates]

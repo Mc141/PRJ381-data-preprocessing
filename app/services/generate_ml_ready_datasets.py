@@ -11,7 +11,6 @@ Usage (from repo root):
 Notes:
 - Requires WorldClim GeoTIFFs under data/worldclim/ (see app/services/worldclim_extractor.py)
 - Uses Open-Topo-Data for elevation via the elevation extractor (internet required)
-- Does NOT use MongoDB; no API server required (runs services directly)
 """
 
 from __future__ import annotations
