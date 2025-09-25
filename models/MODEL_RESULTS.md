@@ -698,3 +698,48 @@ Date: 2025-09-07 15:21:37
 - Feature Importance: `models/xgboost_enhanced/feature_importance.png`
 - SHAP Summary: `models/xgboost_enhanced/shap_summary.png`
 - Precision-Recall: `models/xgboost_enhanced/precision_recall_curve.png`
+
+
+## XGBoost Model Results
+
+**Date**: 2025-09-25 20:33
+
+### Performance Metrics
+- **Accuracy**: 0.8127
+- **ROC AUC**: 0.7921
+- **F1 Score**: 0.8836
+- **Sensitivity**: 0.9810
+- **Specificity**: 0.3700
+- **Average Precision**: 0.8817
+- **Optimal Threshold**: 0.6400
+
+### Confusion Matrix
+```
+[[ 37 63 ]]
+[ [ 5 258 ]]
+```
+### Top Features by Importance
+| Feature | Importance |
+| ------- | ---------- |
+| longitude | 0.1565 |
+| bio4 | 0.1126 |
+| latitude | 0.0932 |
+| bio6 | 0.0834 |
+| bio12 | 0.0748 |
+| bio1 | 0.0738 |
+| bio15 | 0.0700 |
+| elevation | 0.0678 |
+| bio13 | 0.0649 |
+| bio5 | 0.0623 |
+
+### Model Details
+- **Model**: XGBoost Classifier
+- **Hyperparameters**: Tuned via GridSearchCV (best params shown in console)
+- **Optimal Threshold**: {optimal_threshold:.4f}
+- **Trained on**: Global dataset with background comparison points
+- **Validated on**: South African dataset
+- **Model file**: `models/xgboost/model.pkl`
+
+### Visualization
+- ROC Curve: `models/xgboost/roc_curve.png`
+- Feature Importance: `models/xgboost/feature_importance.png`
