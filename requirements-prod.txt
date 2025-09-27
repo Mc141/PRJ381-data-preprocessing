@@ -12,3 +12,4 @@ rasterio==1.4.3
 pandas==2.2.2
 scikit-learn==1.6.1
 scipy==1.15.2
+xgboost
