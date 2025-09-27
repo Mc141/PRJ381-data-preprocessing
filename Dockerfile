@@ -5,14 +5,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system packages required to build some Python packages (rasterio, lxml, etc.)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       build-essential \
-       gcc \
-       g++ \
-       libpq-dev \
-       libxml2-dev \
-       libxslt1-dev \
-       libgdal-dev \
-       gdal-bin \
+    build-essential \
+    gcc \
+    g++ \
+    libpq-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libgdal-dev \
+    gdal-bin \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
