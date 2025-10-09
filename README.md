@@ -11,14 +11,14 @@ A robust FastAPI service for global invasive species data processing, environmen
 - **Global Data Integration:** Retrieve and process worldwide species occurrence records (GBIF)
 - **Environmental Enrichment:** Integrate WorldClim climate and SRTM elevation
 - **Transfer Learning Datasets:** Create global training and local validation datasets
-- **ML-Ready Exports:** Standardized 17-feature CSV/JSON for model training
+- **ML-Ready Exports:** Standardized 13-feature CSV for XGBoost training
 - **Async Processing:** Efficient handling of large datasets with progress tracking
 
 ### Transfer Learning Workflow
 
 1. **Train globally** on ~7.7K Pyracantha occurrences with environmental data
 2. **Validate locally** on South African subset
-3. **Export** 17 standardized features for all datasets
+3. **Export** 13 standardized features for all datasets
 4. **Deploy** models for global risk prediction
 
 ---
@@ -113,25 +113,27 @@ A robust FastAPI service for global invasive species data processing, environmen
 
 ```python
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
 # Load data
-train = pd.read_csv('global_training.csv')
-val = pd.read_csv('local_validation.csv')
-# Train
-model = RandomForestClassifier(n_estimators=100)
+train = pd.read_csv('data/global_training_ml_ready.csv')
+val = pd.read_csv('data/local_validation_ml_ready.csv')
+# Train XGBoost
+model = xgb.XGBClassifier(max_depth=6, learning_rate=0.1, n_estimators=100)
 model.fit(train.drop('presence', axis=1), train['presence'])
 # Validate
 preds = model.predict(val.drop('presence', axis=1))
+accuracy = (preds == val['presence']).mean()
+print(f"Accuracy: {accuracy:.2%}")
 ```
 
 ---
 
-## ML Features (17)
+## ML Features (13)
 
-- **Location:** latitude, longitude, elevation
-- **Climate:** bio1, bio4, bio5, bio6, bio12, bio13, bio14, bio15
-- **Temporal:** month, day_of_year, sin_month, cos_month
-- **Topographic:** slope, aspect
+- **Location:** latitude, longitude
+- **Topographic:** elevation (SRTM 30m)
+- **Climate:** bio1, bio4, bio5, bio6, bio12, bio13, bio14, bio15 (WorldClim v2.1)
+- **Temporal:** month_sin, month_cos (cyclical encoding)
 
 ---
 
@@ -191,7 +193,7 @@ $ docker run -p 8000:8000 prj381-api
 
 | Component     | Technology            |
 | ------------- | --------------------- |
-| Language      | Python 3.11+          |
+| Language      | Python 3.12+          |
 | Web Framework | FastAPI               |
 | Geospatial    | `geopy`, `folium`     |
 | ML            | scikit-learn, xgboost |

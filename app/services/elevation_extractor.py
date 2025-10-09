@@ -1,24 +1,11 @@
 """
 Elevation Data Extractor
-=======================
 
-This module provides elevation data extraction using SRTM (Shuttle Radar Topography Mission)
-digital elevation models via the Open-Topo-Data API. It is designed to match the data integrity
-and error handling standards of the WorldClim extractor.
-
-Features:
-    - SRTM 30m resolution elevation data
-    - Batch processing for multiple coordinates
-    - Real data only (returns NaN when unavailable)
-    - Caching for performance optimization
-    - Integration with GBIF occurrence data enrichment
-    - Consistent error handling with WorldClim service
+Extracts SRTM 30m elevation data via Open-Topo-Data API with batch processing,
+caching, and rate limiting. Returns real data only (None when unavailable).
 
 Data Source: NASA SRTM via Open-Topo-Data API (https://www.opentopodata.org/)
-Resolution: ~30m (1 arc-second)
 Coverage: Global (60°N to 60°S)
-
-Author: MC141
 """
 
 import aiohttp
@@ -79,6 +66,15 @@ class ElevationExtractor:
         lat_rounded = round(latitude, 3)
         lon_rounded = round(longitude, 3)
         return f"{lat_rounded},{lon_rounded}"
+    
+    def _create_error_result(self, error_type: str, error_message: str) -> Dict[str, Any]:
+        """Create standardized error result dictionary."""
+        return {
+            "elevation": None,
+            "data_source": f"SRTM_{error_type}",
+            "extraction_date": datetime.utcnow().isoformat(),
+            "error": error_message
+        }
         
     async def _rate_limit(self, backoff_factor: float = 1.0):
         """
@@ -119,15 +115,10 @@ class ElevationExtractor:
         # Validate coordinates
         if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
             logger.warning(f"Invalid coordinates: {latitude}, {longitude}")
-            return {
-                "elevation": None,
-                "data_source": "SRTM_validation_error",
-                "extraction_date": datetime.utcnow().isoformat(),
-                "error": "Invalid coordinates"
-            }
+            return self._create_error_result("validation_error", "Invalid coordinates")
             
         # Initialize retry variables
-        max_retries = 5
+        max_retries = 3
         retry_count = 0
         backoff_factor = 1.0
         timeout = aiohttp.ClientTimeout(total=10)
@@ -171,12 +162,7 @@ class ElevationExtractor:
                             error_msg = data.get("error", "Unknown API error")
                             logger.warning(f"API error for {latitude}, {longitude}: {error_msg}")
                             
-                            result = {
-                                "elevation": None,
-                                "data_source": "SRTM_api_error",
-                                "extraction_date": datetime.utcnow().isoformat(),
-                                "error": error_msg
-                            }
+                            result = self._create_error_result("api_error", error_msg)
                             
                             # Cache error result to avoid repeated failed requests
                             self._cache[cache_key] = result
@@ -195,51 +181,22 @@ class ElevationExtractor:
                             continue  # Try again
                         else:
                             logger.error(f"Rate limit (429) max retries exceeded for {latitude}, {longitude}")
-                            result = {
-                                "elevation": None,
-                                "data_source": f"SRTM_rate_limit_error",
-                                "extraction_date": datetime.utcnow().isoformat(),
-                                "error": "Rate limit exceeded after multiple retries"
-                            }
-                            return result
+                            return self._create_error_result("rate_limit_error", "Rate limit exceeded after multiple retries")
                             
                     else:
                         logger.error(f"HTTP error {response.status} for {latitude}, {longitude}")
-                        
-                        result = {
-                            "elevation": None,
-                            "data_source": f"SRTM_http_error_{response.status}",
-                            "extraction_date": datetime.utcnow().isoformat(),
-                            "error": f"HTTP {response.status}"
-                        }
-                        
-                        return result
+                        return self._create_error_result(f"http_error_{response.status}", f"HTTP {response.status}")
                         
             except asyncio.TimeoutError:
                 logger.error(f"Timeout extracting elevation for {latitude}, {longitude}")
-                return {
-                    "elevation": None,
-                    "data_source": "SRTM_timeout_error",
-                    "extraction_date": datetime.utcnow().isoformat(),
-                    "error": "Request timeout"
-                }
+                return self._create_error_result("timeout_error", "Request timeout")
                 
             except Exception as e:
                 logger.error(f"Error extracting elevation for {latitude}, {longitude}: {e}")
-                return {
-                    "elevation": None,
-                    "data_source": "SRTM_extraction_error",
-                    "extraction_date": datetime.utcnow().isoformat(),
-                    "error": str(e)
-                }
+                return self._create_error_result("extraction_error", str(e))
                 
         # This should never be reached, but add a fallback return to satisfy type checking
-        return {
-            "elevation": None,
-            "data_source": "SRTM_unknown_error",
-            "extraction_date": datetime.utcnow().isoformat(),
-            "error": "Unknown error in elevation extraction"
-        }
+        return self._create_error_result("unknown_error", "Unknown error in elevation extraction")
             
     async def extract_elevation_batch(self, coordinates: List[Tuple[float, float]], 
                                     batch_size: int = 50) -> List[Dict[str, Any]]:
@@ -330,12 +287,7 @@ class ElevationExtractor:
                                     
                                 else:
                                     # Missing result for this coordinate
-                                    result = {
-                                        "elevation": None,
-                                        "data_source": "SRTM_missing_result",
-                                        "extraction_date": datetime.utcnow().isoformat(),
-                                        "error": "No result returned for coordinate"
-                                    }
+                                    result = self._create_error_result("missing_result", "No result returned for coordinate")
                                     
                                 results.append(result)
                                 
@@ -412,132 +364,3 @@ class ElevationExtractor:
             self.min_request_interval = original_interval
             
         return results
-        
-    async def enrich_gbif_occurrences(self, occurrences: List[Dict[str, Any]], 
-                                     progress_callback: Optional[Callable] = None) -> List[Dict[str, Any]]:
-        """
-        Enrich GBIF occurrences with elevation data.
-        
-        Args:
-            occurrences: List of GBIF occurrence records
-            progress_callback: Optional callback function for progress reporting
-            
-        Returns:
-            List of GBIF records enriched with elevation data
-        """
-        if not occurrences:
-            return []
-            
-        logger.info(f"Extracting SRTM elevation data for {len(occurrences)} occurrences")
-        
-        # Extract coordinates from occurrences
-        coordinates = []
-        for occurrence in occurrences:
-            lat = occurrence.get("decimalLatitude")
-            lon = occurrence.get("decimalLongitude")
-            
-            if lat is not None and lon is not None:
-                try:
-                    coordinates.append((float(lat), float(lon)))
-                except (ValueError, TypeError):
-                    # Invalid coordinates, will be skipped
-                    coordinates.append((None, None))
-            else:
-                coordinates.append((None, None))
-                
-        # Extract elevation in batches
-        valid_coordinates = [(lat, lon) for lat, lon in coordinates if lat is not None and lon is not None]
-        
-        if not valid_coordinates:
-            logger.warning("No valid coordinates found in occurrences")
-            return occurrences
-            
-        elevation_results = await self.extract_elevation_batch(valid_coordinates)
-        
-        # Create lookup dictionary for faster access
-        elevation_lookup = {}
-        for coord, result in zip(valid_coordinates, elevation_results):
-            lat, lon = coord
-            key = f"{lat:.5f},{lon:.5f}"
-            elevation_lookup[key] = result
-            
-        # Enrich occurrences with elevation data
-        enriched = []
-        for i, occurrence in enumerate(occurrences):
-            if i % 100 == 0 and progress_callback:
-                progress_callback(i, len(occurrences))
-                
-            lat = occurrence.get("decimalLatitude")
-            lon = occurrence.get("decimalLongitude")
-            
-            # Create a copy of the occurrence to avoid modifying the original
-            enriched_occurrence = dict(occurrence)
-            
-            if lat is not None and lon is not None:
-                try:
-                    lat_f, lon_f = float(lat), float(lon)
-                    key = f"{lat_f:.5f},{lon_f:.5f}"
-                    
-                    if key in elevation_lookup:
-                        elevation_data = elevation_lookup[key]
-                        
-                        # Add elevation data to occurrence
-                        if "elevation" not in enriched_occurrence:
-                            enriched_occurrence["elevation"] = elevation_data.get("elevation")
-                            
-                        # Add elevation metadata
-                        if "elevationAccuracy" not in enriched_occurrence:
-                            enriched_occurrence["elevationAccuracy"] = 30  # SRTM 30m accuracy
-                            
-                        if "elevationSource" not in enriched_occurrence:
-                            enriched_occurrence["elevationSource"] = elevation_data.get("data_source")
-                except (ValueError, TypeError):
-                    # Skip invalid coordinates
-                    pass
-                    
-            enriched.append(enriched_occurrence)
-            
-        if progress_callback:
-            progress_callback(len(occurrences), len(occurrences))
-            
-        logger.info(f"Successfully enriched {len(enriched)} occurrences with elevation data")
-        return enriched
-
-# Helper function to get a singleton instance
-_elevation_extractor_instance = None
-
-def get_elevation_extractor() -> ElevationExtractor:
-    """
-    Get a singleton instance of the ElevationExtractor.
-    
-    Returns:
-        ElevationExtractor instance
-    """
-    global _elevation_extractor_instance
-    
-    if _elevation_extractor_instance is None:
-        _elevation_extractor_instance = ElevationExtractor()
-        
-    return _elevation_extractor_instance
-
-
-async def extract_elevation(latitude: float, longitude: float) -> Dict[str, Any]:
-    """Extract elevation data for a single coordinate."""
-    extractor = get_elevation_extractor()
-    async with extractor:
-        return await extractor.extract_elevation(latitude, longitude)
-
-
-async def extract_elevation_batch(coordinates: List[Tuple[float, float]]) -> List[Dict[str, Any]]:
-    """Extract elevation data for multiple coordinates."""
-    extractor = get_elevation_extractor()
-    async with extractor:
-        return await extractor.extract_elevation_batch(coordinates)
-
-
-async def enrich_gbif_with_elevation(occurrences: List[Dict[str, Any]],
-                                   progress_callback: Optional[Callable] = None) -> List[Dict[str, Any]]:
-    """Enrich GBIF occurrences with elevation data."""
-    extractor = get_elevation_extractor()
-    async with extractor:
-        return await extractor.enrich_gbif_occurrences(occurrences, progress_callback)

@@ -70,19 +70,11 @@ async def fetch_environmental_data_batch(session, coordinates, bio_variables, ma
         bio_variables: List of bioclimate variables
         max_retries: Maximum number of retry attempts
     """
-    # Convert variables to format expected by API
-    variables_str = [str(v) for v in bio_variables]
-    
-    # Prepare the payload
-    payload = {
-        "coordinates": coordinates
-    }
-    
     # Build the URL with query parameters
-    variables_param = "&".join([f"variables={v}" for v in variables_str])
+    variables_param = "&".join([f"variables={v}" for v in bio_variables])
     url = f"http://localhost:8000/api/v1/environmental/extract-batch?{variables_param}"
     
-    # Exponential backoff parameters
+    payload = {"coordinates": coordinates}
     base_delay = 1  # Start with 1 second delay
     
     for attempt in range(max_retries):
@@ -91,30 +83,22 @@ async def fetch_environmental_data_batch(session, coordinates, bio_variables, ma
             async with session.post(url, json=payload) as response:
                 if response.status == 200:
                     return await response.json()
-                elif response.status == 429:  # Too Many Requests
-                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)  # Exponential backoff with jitter
-                    print(f"Rate limit hit (429). Retrying in {delay:.2f}s (attempt {attempt+1}/{max_retries})")
-                    await asyncio.sleep(delay)
-                    continue  # Try again
+                
+                # Handle errors with retry
+                if response.status == 429:
+                    print(f"Rate limit hit (429). Retrying (attempt {attempt+1}/{max_retries})")
                 else:
                     error_text = await response.text()
                     print(f"Error fetching environmental data: {response.status}\n{error_text}")
-                    
-                    if attempt < max_retries - 1:
-                        delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
-                        print(f"Retrying in {delay:.2f}s (attempt {attempt+1}/{max_retries})")
-                        await asyncio.sleep(delay)
-                        continue
-                    return None
+                
         except Exception as e:
             print(f"Error making API request: {e}")
-            
-            if attempt < max_retries - 1:
-                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
-                print(f"Retrying in {delay:.2f}s (attempt {attempt+1}/{max_retries})")
-                await asyncio.sleep(delay)
-                continue
-            return None
+        
+        # Retry logic with exponential backoff
+        if attempt < max_retries - 1:
+            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+            print(f"Retrying in {delay:.2f}s (attempt {attempt+1}/{max_retries})")
+            await asyncio.sleep(delay)
     
     print(f"Failed to fetch data after {max_retries} attempts")
     return None
@@ -219,45 +203,36 @@ async def create_environmental_grid_with_real_data(lat_min, lat_max, lon_min, lo
     print("Processing fetched environmental data...")
     
     # Create mapping of coordinates to row indexes
-    coord_map = {(env_data.iloc[i]['latitude'], env_data.iloc[i]['longitude']): i for i in range(len(env_data))}
+    coord_map = {(row['latitude'], row['longitude']): idx for idx, row in env_data.iterrows()}
     
     # Fill in real data
     real_data_count = 0
     for result in all_results:
-        if not result:  # Skip empty results
+        if not result or result.get('latitude') is None or result.get('longitude') is None:
             continue
             
-        lat = result.get('latitude')
-        lon = result.get('longitude')
+        key = (result['latitude'], result['longitude'])
+        idx = coord_map.get(key)
+        if idx is None:
+            continue
         
-        if lat is None or lon is None:
-            continue
-            
-        # Find matching row in DataFrame (with some tolerance for floating point precision)
-        key = (lat, lon)
-        if key in coord_map:
-            idx = coord_map[key]
-            
-            # Add elevation
-            env_data.loc[idx, 'elevation'] = result.get('elevation')
-            
-            # API returns just the numbers as keys (not bio1)
-            for bio_var in bio_variables:
-                bio_key = f"bio{bio_var}"  # Format needed by the model
+        # Add elevation
+        if 'elevation' in result:
+            env_data.loc[idx, 'elevation'] = result['elevation']
+        
+        # API returns just the numbers as keys (not bio1)
+        for bio_var in bio_variables:
+            bio_key = f"bio{bio_var}"
+            value = result.get(str(bio_var)) or result.get(bio_key)
+            if value is not None:
+                env_data.loc[idx, bio_key] = value
                 
-                # Try the numeric format from the API
-                if str(bio_var) in result:
-                    env_data.loc[idx, bio_key] = result.get(str(bio_var))
-                # Fallback to other formats if available
-                elif bio_key in result:
-                    env_data.loc[idx, bio_key] = result.get(bio_key)
-                    
-            # Debug what we're getting from the API
-            if real_data_count == 0:
-                print(f"Sample API response keys: {list(result.keys())}")
-                print(f"Converting keys like '{bio_variables[0]}' to 'bio{bio_variables[0]}'")
-                    
-            real_data_count += 1
+        # Debug first result
+        if real_data_count == 0:
+            print(f"Sample API response keys: {list(result.keys())}")
+            print(f"Converting keys like '{bio_variables[0]}' to 'bio{bio_variables[0]}'")
+                
+        real_data_count += 1
     
     print(f"Successfully filled {real_data_count}/{len(env_data)} grid points with real data")
     
@@ -280,21 +255,20 @@ async def create_environmental_grid_with_real_data(lat_min, lat_max, lon_min, lo
         'bio15': 55
     }
     
-    # Count missing values before filling
+    # Count and fill missing values
     missing_count = env_data.isnull().sum()
-    print(f"Missing values before filling:")
-    for col, count in missing_count.items():
-        if count > 0:
+    if missing_count.sum() > 0:
+        print(f"Missing values before filling:")
+        for col, count in missing_count[missing_count > 0].items():
             print(f"  {col}: {count} missing values")
     
-    # Fill missing values
-    for col, fill_val in fill_values.items():
-        if col in env_data.columns and env_data[col].isnull().sum() > 0:
-            missing_col = env_data[col].isnull().sum()
-            if missing_col > 0:
-                print(f"Filling {missing_col} missing values in {col}")
-                # Avoid chained-assignment; assign the filled series back to the DataFrame
-                env_data[col] = env_data[col].fillna(fill_val)
+        # Fill missing values
+        for col, fill_val in fill_values.items():
+            if col in env_data.columns:
+                missing_col = env_data[col].isnull().sum()
+                if missing_col > 0:
+                    print(f"Filling {missing_col} missing values in {col}")
+                    env_data[col] = env_data[col].fillna(fill_val)
     
     print("Environmental grid with REAL data created successfully")
     return env_data, lat_grid, lon_grid
@@ -310,15 +284,12 @@ def predict_invasion_risk(model, env_data):
         'sin_month', 'cos_month'
     ]
     
-    # Debug: check that all columns exist
+    # Ensure all columns exist
     missing_cols = [col for col in feature_columns if col not in env_data.columns]
     if missing_cols:
         print(f"ERROR: Missing columns: {missing_cols}")
         print(f"Available columns: {env_data.columns.tolist()}")
-    
-    # Make sure all columns exist (with empty values if needed)
-    for col in feature_columns:
-        if col not in env_data.columns:
+        for col in missing_cols:
             env_data[col] = np.nan
     
     X = env_data[feature_columns]
@@ -344,14 +315,8 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
                         tiles='CartoDB positron')
     
     # Add Folium plugins for better visualization
-    try:
-        # Add fullscreen button
-        Fullscreen().add_to(risk_map)
-        
-        # Add measurement tool
-        MeasureControl(position='topright', primary_length_unit='kilometers').add_to(risk_map)
-    except ImportError:
-        print("Some Folium plugins not available. Continuing with basic map.")
+    Fullscreen().add_to(risk_map)
+    MeasureControl(position='topright', primary_length_unit='kilometers').add_to(risk_map)
     
     # Add a base layer group
     folium.TileLayer(
@@ -368,12 +333,7 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
             <span style="font-size:14px">{month_name} | XGBoost Model | REAL API DATA</span>
         </h3>
     '''
-    
-    # Safe way to add HTML to map
-    try:
-        folium.Element(title_html).add_to(risk_map)
-    except Exception as e:
-        print(f"Warning: Could not add title to map: {e}")
+    folium.Element(title_html).add_to(risk_map)
     
     # Define color function for risk levels
     def get_color(risk):
@@ -479,12 +439,8 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
     )
     risk_map.add_child(colormap)
     
-    # Create marker cluster for observation points
-    marker_cluster = None
-    try:
-        marker_cluster = MarkerCluster(name='Observation Points').add_to(risk_map)
-    except ImportError:
-        marker_cluster = risk_map
+    # Create marker cluster for observation points (unused but available for extension)
+    marker_cluster = MarkerCluster(name='Observation Points').add_to(risk_map)
     
     # Create a statistics panel
     stats_html = f'''
@@ -509,12 +465,7 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
             </div>
         </div>
     '''
-    
-    # Safe way to add stats panel
-    try:
-        folium.Element(stats_html).add_to(risk_map)
-    except Exception as e:
-        print(f"Warning: Could not add stats panel to map: {e}")
+    folium.Element(stats_html).add_to(risk_map)
     
     # Add layer control
     folium.LayerControl().add_to(risk_map)

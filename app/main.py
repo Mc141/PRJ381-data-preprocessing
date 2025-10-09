@@ -25,7 +25,7 @@ Project: PRJ381 - Invasive Species Distribution Modeling
 
 # FastAPI application and router imports
 from fastapi import FastAPI
-from app.routers import datasets, status, predictions
+from app.routers import datasets, status, predictions, elevation
 # Environmental router is required for data extraction used by predictions and heatmaps
 from app.routers import environmental
 
@@ -37,11 +37,6 @@ app = FastAPI(
     description="""
 API for global species distribution modeling and transfer learning.
 
-DATA INTEGRITY POLICY
----------------------
-REAL DATA ONLY: No fake, dummy, or placeholder environmental values
-Missing = NaN: When data unavailable, returns None/NaN (never fake values)
-Transparent Sources: All data sources clearly labeled and trackable
 
 QUICK START WORKFLOW
 --------------------
@@ -59,15 +54,14 @@ Step 5: Model Training & Prediction
 DATA SOURCES
 ------------
 Species Data: GBIF Global Database
-Climate Data: WorldClim v2.1
+Climate Data: WorldClim v2.1 (8 bioclimate variables)
 Elevation Data: SRTM 30m via Open-Topo-Data API
-Weather Data: NASA POWER API
 
 ML CAPABILITIES
 ---------------
 Transfer Learning: Global training → Local validation
-Environmental Modeling: Climate + elevation + weather variables
-Risk Assessment: Invasion suitability mapping
+Environmental Modeling: Climate + elevation variables (13 features)
+Risk Assessment: Invasion suitability mapping with XGBoost
     """,
     version="3.0.0-minimal",
     docs_url="/docs",
@@ -97,5 +91,6 @@ Risk Assessment: Invasion suitability mapping
 # Include only the core API surface
 app.include_router(status.router, prefix="/api/v1", tags=["1. System Status"])
 app.include_router(environmental.router, prefix="/api/v1", tags=["Environmental Data"])
+app.include_router(elevation.router, prefix="/api/v1", tags=["Environmental Data"])
 app.include_router(datasets.router, prefix="/api/v1", tags=["Datasets"])
 app.include_router(predictions.router, prefix="/api/v1", tags=["Predictions"])

@@ -6,19 +6,14 @@ Elevation API Router
 Endpoints for retrieving elevation data for specific coordinates, supporting batch extraction. Designed for integration with environmental enrichment and modeling workflows.
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from typing import Dict, List, Any
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 import logging
 from datetime import datetime
+from app.services.elevation_extractor import ElevationExtractor
 
-from app.services.elevation_extractor import get_elevation_extractor
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Create router
 router = APIRouter()
 
 
@@ -26,22 +21,9 @@ class CoordinatePoint(BaseModel):
     latitude: float = Field(..., ge=-90, le=90, description="Latitude in decimal degrees.")
     longitude: float = Field(..., ge=-180, le=180, description="Longitude in decimal degrees.")
 
-    @validator('latitude')
-    def validate_latitude(cls, v):
-        if not -90 <= v <= 90:
-            raise ValueError("Latitude must be between -90 and 90.")
-        return v
-
-    @validator('longitude')
-    def validate_longitude(cls, v):
-        if not -180 <= v <= 180:
-            raise ValueError("Longitude must be between -180 and 180.")
-        return v
-
 
 class CoordinateListRequest(BaseModel):
     coordinates: List[CoordinatePoint] = Field(..., description="List of coordinates to process.")
-
 
 
 @router.post(
@@ -69,18 +51,13 @@ async def extract_elevation_batch(
     """
     try:
         coordinates = [(point.latitude, point.longitude) for point in request.coordinates]
-        logger.info(f"Extracting batch elevation data for {len(coordinates)} coordinates")
+        logger.info(f"Extracting elevation data for {len(coordinates)} coordinates")
         
-        # Get elevation extractor
-        extractor = get_elevation_extractor()
-        
-        # Use async context manager properly
+        extractor = ElevationExtractor()
         async with extractor:
-            # Extract elevation data in batch
             results = await extractor.extract_elevation_batch(coordinates)
             
-            # Add API metadata
-            response = {
+            return {
                 "request_info": {
                     "timestamp": datetime.utcnow().isoformat(),
                     "endpoint": "/api/v1/elevation/extract-batch",
@@ -88,9 +65,7 @@ async def extract_elevation_batch(
                 },
                 "results": results
             }
-            
-            return response
     
     except Exception as e:
-        logger.error(f"Error extracting batch elevation data: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to extract batch elevation data: {str(e)}")
+        logger.error(f"Error extracting elevation data: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to extract elevation data: {str(e)}")

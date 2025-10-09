@@ -23,11 +23,11 @@ Test Structure
 
     tests/
     ├── __init__.py
-    ├── test_datasets.py          # Dataset router and fusion tests
-    ├── test_inat_fetcher.py      # iNaturalist API integration tests
-    ├── test_nasa_fetcher.py      # NASA POWER API integration tests
-    ├── test_observations.py      # Observations router tests
-    └── test_weather.py           # Weather router tests
+    ├── test_status.py            # Health check and system status tests
+    ├── test_datasets.py          # ML dataset generation tests
+    ├── test_predictions.py       # Model training and heatmap tests
+    ├── test_observations.py      # GBIF data fetching tests (legacy)
+    └── test_weather.py           # Environmental data extraction tests (legacy)
 
 Running Tests
 ~~~~~~~~~~~~~
@@ -157,23 +157,23 @@ The manual testing is organized into phases as documented in ``testplan.md``:
 
 **Phase 1: System Health**
     - Service health checks
-    - Database connectivity
-    - API responsiveness
+    - WorldClim file availability
+    - XGBoost model status
 
-**Phase 2: Observations**
-    - Fetch observations from iNaturalist
-    - Store and retrieve from database
-    - Data validation and formatting
+**Phase 2: Environmental Data**
+    - WorldClim climate variable extraction
+    - SRTM elevation data fetching
+    - Batch coordinate processing
 
-**Phase 3: Weather Data**
-    - Fetch weather data from NASA POWER
-    - Multi-location processing
-    - Historical data retrieval
+**Phase 3: ML Dataset Generation**
+    - Global training dataset creation
+    - Local validation dataset creation
+    - Feature engineering (13 features)
 
-**Phase 4: Dataset Operations**
-    - Data fusion and merging
-    - Feature engineering
-    - Export functionality
+**Phase 4: Predictions**
+    - Model training with XGBoost
+    - Heatmap generation with real-time environmental data
+    - Risk probability visualization
 
 Test Scenarios
 ~~~~~~~~~~~~~~
@@ -188,15 +188,16 @@ Test Scenarios
     # Service information
     GET /api/v1/status/service_info
     
-    # Fetch observations
-    GET /api/v1/observations/from?year=2024&month=8&day=1
+    # Extract environmental data
+    POST /api/v1/environmental/extract-batch
+    Body: {"coordinates": [{"latitude": -33.925, "longitude": 18.424}]}
 
-**Data Integration**
+**Dataset Generation**
 
 .. code-block:: http
 
-    # Merge small dataset
-    GET /api/v1/datasets/merge?start_year=2024&start_month=8&start_day=1&end_year=2024&end_month=8&end_day=2&years_back=1
+    # Generate ML-ready datasets
+    POST /api/v1/datasets/generate-ml-ready-files?max_global=100&max_local=50&batch_size=20
     
     # Export dataset
     GET /api/v1/datasets/export
@@ -239,27 +240,28 @@ Memory and Resource Testing
     ps aux | grep python
     top -p $(pgrep -f uvicorn)
 
-**Database Performance**::
+**File System Performance**::
 
-    # MongoDB performance stats
-    db.stats()
-    db.inat_observations.getIndexes()
+    # Check WorldClim file access
+    ls -lh data/worldclim/*.tif
+    # Check model file
+    ls -lh models/xgboost/model.pkl
 
 Test Data Management
 --------------------
 
-Test Database Setup
-~~~~~~~~~~~~~~~~~~~
+Test Dataset Setup
+~~~~~~~~~~~~~~~~~~
 
-**Separate Test Database**::
+**Sample Test Data**::
 
-    # Use different database for testing
-    export MONGODB_URL="mongodb://localhost:27017/test_invasive_db"
+    # Create small test datasets for fast testing
+    python -m app.services.generate_ml_ready_datasets --max-global 10 --max-local 5
 
 **Data Cleanup**::
 
-    # Clean test data after tests
-    pytest --setup-clean
+    # Remove test datasets after tests
+    rm data/*_test.csv
 
 Mock Data Generation
 ~~~~~~~~~~~~~~~~~~~~
@@ -305,18 +307,19 @@ Automated Test Pipeline
     jobs:
       test:
         runs-on: ubuntu-latest
-        services:
-          mongodb:
-            image: mongo:5.0
-            ports:
-              - 27017:27017
         
         steps:
         - uses: actions/checkout@v2
         - name: Set up Python
           uses: actions/setup-python@v2
           with:
-            python-version: 3.11
+            python-version: 3.12
+        
+        - name: Cache WorldClim data
+          uses: actions/cache@v2
+          with:
+            path: data/worldclim
+            key: worldclim-v2.1
         
         - name: Install dependencies
           run: pip install -r requirements.txt
@@ -340,21 +343,21 @@ Common Issues
 
 **API Rate Limiting**::
 
-    # Reduce test frequency
-    # Use mock responses for external APIs
-    # Implement retry logic in tests
+    # Open-Topo-Data API has rate limits
+    # Use mock responses for tests
+    # Implement 1-second delays for real requests
 
-**Database Connection Issues**::
+**WorldClim File Access**::
 
-    # Verify MongoDB is running
-    # Check connection string
-    # Ensure test database permissions
+    # Verify GeoTIFF files exist in data/worldclim/
+    # Check file permissions (read access required)
+    # Ensure sufficient disk space for extraction
 
 **Async Test Issues**::
 
     # Use proper pytest-asyncio decorators
     # Ensure proper cleanup of async resources
-    # Handle race conditions in tests
+    # Handle race conditions in batch processing
 
 **Memory Issues in Large Tests**::
 

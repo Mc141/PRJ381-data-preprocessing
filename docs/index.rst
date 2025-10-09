@@ -37,11 +37,11 @@ Overview
 This microservice provides:
 
 * **GBIF API Integration**: Global species occurrence data collection and management
-* **WorldClim Integration**: Real climate data extraction from v2.1 bioclimate variables
-* **NASA POWER API Integration**: Environmental data enrichment with weather variables
-* **MongoDB Storage**: Persistent storage for observations, environmental data, and ML features
+* **WorldClim Integration**: Real climate data extraction from v2.1 bioclimate variables (8 variables)
+* **SRTM Elevation Data**: Topographic enrichment via Open-Topo-Data API (30m resolution)
+* **CSV Export**: File-based ML-ready datasets for training and validation
 * **FastAPI REST API**: Modern, async REST endpoints with automatic documentation
-* **ML Pipeline**: Complete data fusion pipeline for machine learning dataset creation
+* **XGBoost Model**: Invasion risk prediction and probability heatmap generation
 * **Transfer Learning Support**: Global training datasets for local model validation
 
 The service is designed for creating high-quality training datasets for species distribution modeling and invasion risk assessment.
@@ -63,9 +63,10 @@ Quick Start
 
     pip install -r requirements.txt
 
-2. **Start MongoDB**::
+2. **Download WorldClim Data**::
 
-    mongod --dbpath /path/to/your/db
+    # Place GeoTIFF files in data/worldclim/ directory
+    # Required: wc2.1_10m_bio_1.tif, bio_4-6, bio_12-15
 
 3. **Run the API**::
 
@@ -80,12 +81,10 @@ API Workflow
 
 Follow this sequence for optimal results:
 
-1. **System Status**: `GET /api/v1/status/health` - Verify system health
-2. **Species Data**: `GET /api/v1/gbif/occurrences?store_in_db=true` - Collect GBIF data
-3. **Environmental Data**: `POST /api/v1/worldclim/ensure-data` - Download climate data
-4. **Dataset Creation**: `GET /api/v1/datasets/merge-global` - Create enriched dataset
-5. **ML Export**: `GET /api/v1/datasets/export-ml-ready` - Export for model training
-6. **Predictions**: `GET /api/v1/predictions/*` - Generate invasion risk maps
+1. **System Status**: `GET /api/v1/status/health` - Verify system health and WorldClim files
+2. **Environmental Data**: `POST /api/v1/environmental/extract-batch` - Extract climate + elevation
+3. **Dataset Creation**: `POST /api/v1/datasets/generate-ml-ready` - Create enriched CSV datasets
+4. **Predictions**: `GET /api/v1/predictions/heatmap` - Generate invasion risk heatmaps
 
 .. note::
    When running locally, the API will be available at http://localhost:8000
@@ -99,30 +98,6 @@ Follow this sequence for optimal results:
        
        # Clean build and serve
        python build_docs.py --clean --serve
-* **MongoDB Storage**: Persistent storage for observations, weather data, and computed features
-* **FastAPI REST API**: Modern, async REST endpoints with automatic documentation
-* **Data Pipeline**: Complete data fusion pipeline with error handling and validation
-
-The service is designed to run as part of a larger ecological monitoring platform for predicting invasive plant spread patterns.
-
-Quick Start
-===========
-
-1. **Install Dependencies**::
-
-    pip install -r requirements.txt
-
-2. **Start MongoDB**::
-
-    mongod --dbpath /path/to/your/db
-
-3. **Run the API**::
-
-    uvicorn app.main:app --reload
-
-4. **Build Documentation**::
-
-    python build_docs.py --serve --open
 
 .. note::
    When running locally, the API will be available at http://localhost:8000

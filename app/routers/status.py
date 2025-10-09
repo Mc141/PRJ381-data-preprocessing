@@ -9,12 +9,8 @@ deployment validation, and service readiness checks.
 
 from datetime import datetime
 from fastapi import APIRouter
-from typing import Dict, Any
-import logging
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
-
 
 
 @router.get("/status/health")

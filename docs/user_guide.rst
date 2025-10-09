@@ -7,10 +7,10 @@ Installation
 Prerequisites
 ~~~~~~~~~~~~~
 
-* Python 3.11 or higher
-* MongoDB 4.4 or higher
-* Internet connection for API access
-* At least 1GB free disk space for environmental data
+* Python 3.12 or higher
+* Internet connection for Open-Topo-Data API access
+* At least 500MB free disk space for WorldClim data
+* WorldClim v2.1 GeoTIFF files (bio variables 1, 4-6, 12-15)
 
 Setup Steps
 ~~~~~~~~~~~
@@ -24,13 +24,12 @@ Setup Steps
 
     pip install -r requirements.txt
 
-3. **Start MongoDB**::
+3. **Download WorldClim Data**::
 
-    # Using MongoDB service
-    sudo systemctl start mongod
-    
-    # Or directly
-    mongod --dbpath /path/to/your/db
+    # Download from: https://worldclim.org/data/worldclim21.html
+    # Place files in: data/worldclim/
+    # Required: wc2.1_10m_bio_1.tif, bio_4.tif, bio_5.tif, bio_6.tif,
+    #           bio_12.tif, bio_13.tif, bio_14.tif, bio_15.tif
 
 4. **Run the Application**::
 
@@ -71,30 +70,24 @@ Download WorldClim v2.1 climate data::
 
 Downloads ~900MB of real bioclimate data to your local system.
 
-Step 4: Create Enriched Dataset
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Step 4: Generate ML-Ready Datasets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Merge species data with environmental variables::
+Generate training and validation CSV files::
 
-    GET /api/v1/datasets/merge-global?include_nasa_weather=false
+    POST /api/v1/datasets/generate-ml-ready
+    Body: {"max_global": 2000, "max_local": 500}
 
-This enriches species occurrences with 19 bioclimate variables.
+Creates enriched datasets with 13 features (location, climate, temporal, elevation).
 
-Step 5: Export for ML Training
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Step 5: Generate Predictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Export ML-ready dataset::
+Use trained XGBoost model for invasion risk mapping::
 
-    GET /api/v1/datasets/export-ml-ready?dataset_type=global_training&format=csv
+    GET /api/v1/predictions/heatmap?model_name=xgboost
 
-Creates a 17-feature dataset optimized for Random Forest and other ML algorithms.
-
-Step 6: Generate Predictions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Use trained models for invasion risk mapping::
-
-    GET /api/v1/predictions/generate-risk-map
+Generates probability heatmap for invasion risk assessment.
 
 Data Integrity
 --------------
@@ -102,52 +95,44 @@ Data Integrity
 This API maintains strict data quality standards:
 
 Real Data Only
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 * **No Fake Values**: System never generates dummy or placeholder environmental data
-* **Transparent Sources**: All data sources clearly labeled (WorldClim v2.1, GBIF, NASA POWER)
+* **Transparent Sources**: All data sources clearly labeled (WorldClim v2.1, GBIF, SRTM via Open-Topo-Data)
 * **Missing Data Handling**: Returns None/NaN when data unavailable (never fake values)
 
 Quality Verification
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 Verify data integrity::
 
-    GET /api/v1/status/data-integrity
+    GET /api/v1/status/health
+    GET /api/v1/status/pipeline-validation
 
-This endpoint validates that the system maintains real data standards.
+These endpoints validate that the system maintains real data standards and all required files exist.
 
 Basic Usage Examples
+~~~~~~~~~~~~~~~~~~~~
+
+Check system status::
 
     GET /api/v1/status/health
-    GET /api/v1/status/service_info
+    GET /api/v1/status/service-info
 
-Fetching Observations
-~~~~~~~~~~~~~~~~~~~~~
+Extract environmental data::
 
-Get iNaturalist observations for a date range::
+    POST /api/v1/environmental/extract-batch
+    Body: {"coordinates": [
+        {"latitude": -33.925, "longitude": 18.424},
+        {"latitude": -34.056, "longitude": 18.472}
+    ]}
 
-    GET /api/v1/observations/from?year=2024&month=8&day=1&store_in_db=true
+Generate datasets::
 
-Retrieve stored observations::
+    POST /api/v1/datasets/generate-ml-ready
+    Body: {"max_global": 1000, "max_local": 250, "verbose": true}
 
-    GET /api/v1/observations/db
-
-Fetching Weather Data
-~~~~~~~~~~~~~~~~~~~~~
-
-Get NASA POWER weather data::
-
-    GET /api/v1/weather?latitude=-33.9249&longitude=18.4073&start_year=2024&start_month=1&start_day=1&end_year=2024&end_month=12&end_day=31&store_in_db=true
-
-Creating Datasets
-~~~~~~~~~~~~~~~~~
-
-Merge observations with weather data::
-
-    GET /api/v1/datasets/merge?start_year=2024&start_month=1&start_day=1&end_year=2024&end_month=12&end_day=31&years_back=5
-
-Export merged dataset::
+Generate prediction heatmap::
 
     GET /api/v1/datasets/export
 
@@ -162,12 +147,7 @@ For large datasets, use the async processing capabilities::
     # Process multiple years of data
     GET /api/v1/datasets/merge?start_year=2020&start_month=1&start_day=1&end_year=2024&end_month=12&end_day=31&years_back=10
 
-Data Refresh
-~~~~~~~~~~~~
-
-Update weather data for existing observations::
-
-    POST /api/v1/datasets/refresh-weather
+    GET /api/v1/predictions/heatmap?model_name=xgboost
 
 Configuration
 -------------
@@ -177,56 +157,61 @@ Environment Variables
 
 The application supports the following environment variables:
 
-* ``MONGODB_URL``: MongoDB connection string (default: mongodb://localhost:27017/invasive_db)
 * ``LOG_LEVEL``: Logging level (default: INFO)
 * ``API_TIMEOUT``: API request timeout in seconds (default: 30)
+* ``WORLDCLIM_PATH``: Path to WorldClim GeoTIFF files (default: data/worldclim/)
 
-Database Configuration
-~~~~~~~~~~~~~~~~~~~~~~
+Data Files Required
+~~~~~~~~~~~~~~~~~~~
 
-MongoDB collections used:
+WorldClim v2.1 GeoTIFF files needed in ``data/worldclim/``:
 
-* ``inat_observations``: Species observation data
-* ``weather_data``: Daily weather time series
-* ``weather_features``: Computed weather features
+* ``wc2.1_10m_bio_1.tif``: Annual mean temperature
+* ``wc2.1_10m_bio_4.tif``: Temperature seasonality
+* ``wc2.1_10m_bio_5.tif``: Max temperature of warmest month
+* ``wc2.1_10m_bio_6.tif``: Min temperature of coldest month
+* ``wc2.1_10m_bio_12.tif``: Annual precipitation
+* ``wc2.1_10m_bio_13.tif``: Precipitation of wettest month
+* ``wc2.1_10m_bio_14.tif``: Precipitation of driest month
+* ``wc2.1_10m_bio_15.tif``: Precipitation seasonality
 
 Error Handling
 --------------
 
 The API provides comprehensive error handling:
 
-* **400 Bad Request**: Invalid parameters or date ranges
-* **404 Not Found**: No data found for specified criteria
-* **500 Internal Server Error**: Database or API communication errors
+* **400 Bad Request**: Invalid parameters or coordinates
+* **404 Not Found**: No data found or missing WorldClim files
+* **500 Internal Server Error**: GeoTIFF extraction or API communication errors
 
 Common Issues
 ~~~~~~~~~~~~~
 
-**MongoDB Connection Issues**::
+**WorldClim File Missing**::
 
-    # Check if MongoDB is running
-    sudo systemctl status mongod
+    # Check if files exist
+    ls -lh data/worldclim/*.tif
     
-    # Check connection string
-    mongo mongodb://localhost:27017/invasive_db
+    # Verify file permissions
+    chmod 644 data/worldclim/*.tif
 
 **API Timeout Issues**::
 
-    # Reduce date range for large queries
-    # Use smaller years_back values
+    # Open-Topo-Data has 1-second rate limit
+    # Use batch processing with delays
     # Check internet connection
 
 **Memory Issues**::
 
-    # Process smaller date ranges
+    # Process smaller batches
     # Increase system memory
-    # Use pagination for large datasets
+    # Use streaming for large coordinate lists
 
 Performance Tips
 ----------------
 
-* Use concurrent processing for multiple observations
-* Limit date ranges for initial testing
-* Monitor MongoDB storage usage
-* Use appropriate years_back values (1-10 years)
-* Export data regularly to prevent large accumulations
+* Use batch processing for multiple coordinates (100 at a time)
+* Respect Open-Topo-Data rate limits (1-second delays)
+* Cache extracted environmental data
+* Monitor disk space for WorldClim files (~500MB total)
+* Use smaller test datasets during development

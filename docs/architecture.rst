@@ -4,13 +4,13 @@ Architecture
 System Overview
 ---------------
 
-The PRJ381 Data Preprocessing API follows a modular, microservice-oriented architecture designed for scalability, maintainability, and performance.
+The PRJ381 Species Distribution Modeling API follows a modular, stateless architecture designed for Docker deployment, horizontal scalability, and production readiness.
 
 .. code-block:: text
 
     ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-    │   iNaturalist   │    │   NASA POWER    │    │    MongoDB      │
-    │      API        │    │      API        │    │   Database      │
+    │      GBIF       │    │   WorldClim     │    │  Open-Topo-Data │
+    │    Database     │    │   GeoTIFFs      │    │   SRTM API      │
     └─────────────────┘    └─────────────────┘    └─────────────────┘
             │                        │                        │
             │                        │                        │
@@ -18,15 +18,19 @@ The PRJ381 Data Preprocessing API follows a modular, microservice-oriented archi
     ┌─────────────────────────────────────────────────────────────────┐
     │                  FastAPI Application                            │
     │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐│
-    │  │   Status    │ │Observations │ │   Weather   │ │  Datasets   ││
+    │  │   Status    │ │Environmental│ │  Datasets   │ │ Predictions ││
     │  │   Router    │ │   Router    │ │   Router    │ │   Router    ││
     │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘│
     │  ┌─────────────────────────────────────────────────────────────┐│
     │  │                     Services Layer                          ││
     │  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────────┐││
-    │  │  │  Database   │ │iNat Fetcher │ │    NASA Fetcher         │││
-    │  │  │   Service   │ │   Service   │ │      Service            │││
+    │  │  │    GBIF     │ │  WorldClim  │ │       Elevation         │││
+    │  │  │   Fetcher   │ │  Extractor  │ │       Extractor         │││
     │  │  └─────────────┘ └─────────────┘ └─────────────────────────┘││
+    │  └─────────────────────────────────────────────────────────────┘│
+    │  ┌─────────────────────────────────────────────────────────────┐│
+    │  │                     Data Layer                              ││
+    │  │  CSV Exports: global_training.csv, local_validation.csv     ││
     │  └─────────────────────────────────────────────────────────────┘│
     └─────────────────────────────────────────────────────────────────┘
 
@@ -51,99 +55,87 @@ API Layer
 Services Layer
 ~~~~~~~~~~~~~~
 
-**Database Service**
-    - MongoDB connection management
-    - Connection pooling and lifecycle management
-    - Error handling and retry logic
-    - Data persistence abstraction
+**GBIF Fetcher Service** (``gbif_fetcher.py``)
+    - Async HTTP client for GBIF occurrence API
+    - Quality filtering and coordinate validation
+    - Pagination and batch processing
+    - Species-specific and geographic filtering
 
-**iNaturalist Fetcher Service**
-    - Async HTTP client for iNaturalist API
-    - Rate limiting and request optimization
-    - Data validation and cleaning
-    - Pagination handling
+**WorldClim Extractor Service** (``worldclim_extractor.py``)
+    - Rasterio-based GeoTIFF reading
+    - Batch coordinate sampling
+    - 8 bioclimate variable extraction (bio1, bio4-6, bio12-15)
+    - Missing data handling (returns None)
 
-**NASA POWER Fetcher Service**
-    - Weather data retrieval from NASA POWER API
-    - Concurrent processing for multiple locations
-    - Date range validation
-    - Feature engineering pipeline
+**Elevation Extractor Service** (``elevation_extractor.py``)
+    - Open-Topo-Data API integration
+    - SRTM 30m elevation data
+    - Rate limiting (1-second delays)
+    - Batch processing with error handling
 
-**Dataset Builder Service**
-    - Data fusion and integration
-    - Feature computation algorithms
-    - Data quality validation
-    - Export functionality
+**Dataset Generator Service** (``generate_ml_ready_datasets.py``)
+    - ML-ready CSV generation
+    - 13-feature standardized format
+    - Transfer learning dataset creation
+    - Progress tracking and logging
 
 Data Layer
 ~~~~~~~~~~
 
-**MongoDB Collections**
+**CSV Export Format**
 
-.. code-block:: javascript
+ML-ready datasets with 13 standardized features:
 
-    // inat_observations
-    {
-        "id": "observation_id",
-        "latitude": -33.9249,
-        "longitude": 18.4073,
-        "time_observed_at": "2024-08-01T10:30:00Z",
-        "species": "Pyracantha angustifolia",
-        // ... other observation fields
-    }
+.. code-block:: text
 
-    // weather_data
-    {
-        "inat_id": "observation_id",
-        "date": "2024-08-01",
-        "temperature": 18.5,
-        "precipitation": 0.0,
-        "humidity": 65.2,
-        // ... other weather variables
-    }
+    latitude,longitude,elevation,bio1,bio4,bio5,bio6,bio12,bio13,bio14,bio15,month_sin,month_cos
+    -33.9249,18.4073,245.0,16.8,574.2,25.3,9.1,515.0,79.0,15.0,48.2,0.5,0.866
 
-    // weather_features
-    {
-        "inat_id": "observation_id",
-        "obs_date": "2024-08-01",
-        "years_back": 5,
-        "features": {
-            "temp_mean_30d": 17.8,
-            "precip_sum_7d": 12.5,
-            // ... computed features
-        }
-    }
+**Feature Descriptions:**
+
+* ``latitude``: Decimal degrees (-90 to 90)
+* ``longitude``: Decimal degrees (-180 to 180)
+* ``elevation``: Meters above sea level (SRTM 30m)
+* ``bio1``: Annual mean temperature (°C × 10)
+* ``bio4``: Temperature seasonality (std dev × 100)
+* ``bio5``: Max temperature of warmest month (°C × 10)
+* ``bio6``: Min temperature of coldest month (°C × 10)
+* ``bio12``: Annual precipitation (mm)
+* ``bio13``: Precipitation of wettest month (mm)
+* ``bio14``: Precipitation of driest month (mm)
+* ``bio15``: Precipitation seasonality (coefficient of variation)
+* ``month_sin/cos``: Temporal encoding (0-1)
 
 Data Flow
 ---------
 
-Observation Processing
-~~~~~~~~~~~~~~~~~~~~~~
+Environmental Data Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. **API Request**: Client requests observations for date range
-2. **iNaturalist Query**: Service fetches data from iNaturalist API
-3. **Data Validation**: Validates coordinates, dates, and data quality
-4. **Storage**: Stores validated observations in MongoDB
-5. **Response**: Returns processed observations to client
+1. **Coordinate Input**: Client provides latitude/longitude pairs
+2. **WorldClim Extraction**: Rasterio samples 8 bioclimate variables from GeoTIFFs
+3. **Elevation Extraction**: Open-Topo-Data API fetches SRTM elevation (with rate limiting)
+4. **Data Validation**: Checks for None/NaN values, validates ranges
+5. **Response**: Returns enriched environmental data
 
-Weather Enrichment
-~~~~~~~~~~~~~~~~~~
+ML-Ready Dataset Generation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. **Location Extraction**: Extracts coordinates from observations
-2. **Date Range Calculation**: Computes historical weather period
-3. **NASA API Calls**: Fetches weather data concurrently
-4. **Feature Engineering**: Computes temporal aggregations
-5. **Storage**: Stores weather data and features
-6. **Response**: Returns enriched dataset
+1. **GBIF Data Loading**: Load occurrence records (global or local subset)
+2. **Coordinate Extraction**: Extract unique latitude/longitude pairs
+3. **Batch Processing**: Process coordinates in batches (default 100)
+4. **Environmental Enrichment**: Add climate + elevation data
+5. **Feature Engineering**: Add temporal encoding (month_sin, month_cos)
+6. **CSV Export**: Write to ``data/global_training_ml_ready.csv`` and ``data/local_validation_ml_ready.csv``
 
-Dataset Fusion
-~~~~~~~~~~~~~~
+Prediction Heatmap Generation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. **Data Retrieval**: Fetches observations and weather data
-2. **Temporal Alignment**: Aligns weather data with observation dates
-3. **Feature Computation**: Calculates rolling window features
-4. **Quality Checks**: Validates data completeness and consistency
-5. **Export**: Provides merged dataset for analysis
+1. **Grid Creation**: Generate lat/lon grid for target region
+2. **Real-Time Enrichment**: Extract environmental data for each grid point
+3. **Model Inference**: XGBoost predicts invasion probability
+4. **Visualization**: Create Folium heatmap with stats panel
+5. **Export**: Return HTML for display or download
 
 Async Architecture
 ------------------
@@ -192,15 +184,15 @@ Horizontal Scaling
 ~~~~~~~~~~~~~~~~~~
 
 * **Stateless Design**: No server-side session state
-* **Database Clustering**: MongoDB replica sets and sharding
+* **File-based Storage**: CSV exports for distributed processing
 * **Load Balancing**: Multiple FastAPI instances behind load balancer
-* **Caching Layer**: Redis for frequently accessed data
+* **Caching Layer**: WorldClim extraction results cache
 
 Vertical Scaling
 ~~~~~~~~~~~~~~~~
 
-* **Async Processing**: Efficient CPU and memory utilization
-* **Connection Pooling**: Optimized database connections
+* **Async Processing**: Efficient CPU and memory utilization with asyncio
+* **Batch Processing**: Large coordinate sets processed in chunks
 * **Memory Management**: Streaming processing for large datasets
 * **Resource Monitoring**: Performance metrics and alerting
 
@@ -218,10 +210,10 @@ API Security
 Data Security
 ~~~~~~~~~~~~~
 
-* **Database Access Control**: Authenticated MongoDB connections
-* **Data Encryption**: Encrypted data transmission
+* **File System Access Control**: Protected WorldClim data directory
+* **Data Encryption**: Encrypted data transmission via HTTPS
 * **Audit Logging**: Comprehensive access and operation logging
-* **Backup Strategy**: Regular automated backups
+* **Backup Strategy**: Version-controlled datasets and model files
 
 Deployment Architecture
 -----------------------
@@ -246,18 +238,12 @@ Production Environment
         build: .
         ports:
           - "8000:8000"
-        environment:
-          - MONGODB_URL=mongodb://mongo:27017/invasive_db
-        depends_on:
-          - mongo
-      
-      mongo:
-        image: mongo:5.0
         volumes:
-          - mongo_data:/data/db
-    
-    volumes:
-      mongo_data:
+          - ./data:/app/data
+          - ./models:/app/models
+        environment:
+          - WORLDCLIM_PATH=/app/data/worldclim/
+          - LOG_LEVEL=INFO
 
 Monitoring and Observability
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

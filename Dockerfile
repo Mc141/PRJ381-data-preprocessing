@@ -18,12 +18,11 @@ RUN apt-get update \
 WORKDIR /app
 
 # Copy only requirements first to leverage Docker cache
-# Prefer a small production requirements file for faster builds; fall back to full requirements.txt
-COPY requirements-prod.txt requirements.txt ./
+COPY requirements.txt ./
 
 # Make sure pip, wheel, and setuptools are current so binary wheels are used whenever possible
 RUN python -m pip install --upgrade pip wheel setuptools \
-    && if [ -f requirements-prod.txt ]; then pip install --no-cache-dir -r requirements-prod.txt; else pip install --no-cache-dir -r requirements.txt; fi
+    && pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .

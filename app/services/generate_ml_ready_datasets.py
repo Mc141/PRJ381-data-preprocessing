@@ -9,7 +9,7 @@ Usage (from repo root):
     --max-global 2000 --max-local 500 --batch-size 100 --verbose
 
 Notes:
-- Requires WorldClim GeoTIFFs under data/worldclim/ (see app/services/worldclim_extractor.py)
+- Requires WorldClim GeoTIFFs under data/worldclim/ (must be pre-downloaded)
 - Uses Open-Topo-Data for elevation via the elevation extractor (internet required)
 """
 
@@ -35,7 +35,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from app.services.gbif_fetcher import GBIFFetcher  # noqa: E402
 from app.services.worldclim_extractor import get_worldclim_extractor  # noqa: E402
-from app.services.elevation_extractor import get_elevation_extractor  # noqa: E402
+from app.services.elevation_extractor import ElevationExtractor  # noqa: E402
 
 logger = logging.getLogger("generate_ml_ready_datasets")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -99,16 +99,13 @@ def _compute_temporal_features(rec: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def _fetch_occurrences(max_records: Optional[int], country: Optional[str]) -> List[Dict[str, Any]]:
-    async def _noop_progress(current: int, total: int, percentage: float):  # noqa: ARG001
-        return None
-
     async with GBIFFetcher() as fetcher:
         occurrences = await fetcher.fetch_all_occurrences(
             scientific_name="Pyracantha angustifolia (Franch.) C.K.Schneid.",
             quality_filters=True,
             coordinate_uncertainty_max=10000,
             max_records=max_records,
-            progress_callback=_noop_progress,
+            progress_callback=None,
             country=country,
         )
 
@@ -139,7 +136,7 @@ async def _enrich_environmental(records: List[Dict[str, Any]], batch_size: int, 
     coords: List[Tuple[float, float]] = [(float(r["latitude"]), float(r["longitude"])) for r in records]
 
     worldclim = get_worldclim_extractor()
-    elevation = get_elevation_extractor()
+    elevation = ElevationExtractor()
 
     climate_rows: List[Dict[str, Any]] = []
     elevation_rows: List[Dict[str, Any]] = []
@@ -156,23 +153,16 @@ async def _enrich_environmental(records: List[Dict[str, Any]], batch_size: int, 
             elevation_rows.extend(e_res)
 
     df_env = pd.DataFrame(climate_rows)
-    if "elevation" not in df_env.columns:
-        df_env["elevation"] = np.nan
-
-    elev_vals = []
-    for e in elevation_rows:
-        if isinstance(e, dict) and e is not None:
-            elev_vals.append(e.get("elevation"))
-        else:
-            elev_vals.append(None)
-
-    if len(elev_vals) != len(df_env):
-        needed = len(df_env) - len(elev_vals)
-        if needed > 0:
-            elev_vals.extend([None] * needed)
-        else:
-            elev_vals = elev_vals[: len(df_env)]
-
+    
+    # Extract elevation values from results
+    elev_vals = [e.get("elevation") if isinstance(e, dict) else None for e in elevation_rows]
+    
+    # Ensure same length as dataframe
+    if len(elev_vals) < len(df_env):
+        elev_vals.extend([None] * (len(df_env) - len(elev_vals)))
+    elif len(elev_vals) > len(df_env):
+        elev_vals = elev_vals[:len(df_env)]
+    
     df_env["elevation"] = elev_vals
     df_env["latitude"] = [c[0] for c in coords]
     df_env["longitude"] = [c[1] for c in coords]

@@ -1,0 +1,232 @@
+User Guide
+==========
+
+Installation
+------------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+* Python 3.11 or higher
+* MongoDB 4.4 or higher
+* Internet connection for API access
+* At least 1GB free disk space for environmental data
+
+Setup Steps
+~~~~~~~~~~~
+
+1. **Clone the Repository**::
+
+    git clone https://github.com/Mc141/PRJ381-data-preprocessing.git
+    cd PRJ381-data-preprocessing
+
+2. **Install Dependencies**::
+
+    pip install -r requirements.txt
+
+3. **Ensure WorldClim Data**::
+
+    # WorldClim GeoTIFFs must be in data/worldclim/
+    # Download from: https://worldclim.org/data/worldclim21.html
+    
+    # Or directly
+    mongod --dbpath /path/to/your/db
+
+4. **Run the Application**::
+
+    uvicorn app.main:app --reload --port 8000
+
+5. **Access Documentation**:
+   
+   * Swagger UI: http://localhost:8000/docs
+   * ReDoc: http://localhost:8000/redoc
+
+ML Pipeline Workflow
+-------------------
+
+The API follows a structured workflow for creating machine learning datasets:
+
+Step 1: System Health Check
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify system status and dependencies::
+
+    GET /api/v1/status/health
+
+Step 2: Collect Species Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fetch global species occurrence data from GBIF::
+
+    GET /api/v1/gbif/occurrences?store_in_db=true&max_results=2000
+
+This collects ~1,700+ global occurrence records for training.
+
+Step 3: Download Environmental Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download WorldClim v2.1 climate data::
+
+    POST /api/v1/worldclim/ensure-data
+
+Downloads ~900MB of real bioclimate data to your local system.
+
+Step 4: Create Enriched Dataset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Merge species data with environmental variables::
+
+    GET /api/v1/datasets/merge-global?include_nasa_weather=false
+
+This enriches species occurrences with 19 bioclimate variables.
+
+Step 5: Export for ML Training
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Export ML-ready dataset::
+
+    GET /api/v1/datasets/export-ml-ready?dataset_type=global_training&format=csv
+
+Creates a 13-feature dataset optimized for XGBoost and tree-based models.
+
+Step 6: Generate Predictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use trained models for invasion risk mapping::
+
+    GET /api/v1/predictions/generate-risk-map
+
+Data Integrity
+--------------
+
+This API maintains strict data quality standards:
+
+Real Data Only
+~~~~~~~~~~~~~
+
+* **No Fake Values**: System never generates dummy or placeholder environmental data
+* **Transparent Sources**: All data sources clearly labeled (WorldClim v2.1, GBIF, SRTM via Open-Topo-Data)
+* **Missing Data Handling**: Returns None/NaN when data unavailable (never fake values)
+
+Quality Verification
+~~~~~~~~~~~~~~~~~~~
+
+Verify data integrity::
+
+    GET /api/v1/status/data-integrity
+
+This endpoint validates that the system maintains real data standards.
+
+Basic Usage Examples
+
+    GET /api/v1/status/health
+    GET /api/v1/status/service_info
+
+Fetching Observations
+~~~~~~~~~~~~~~~~~~~~~
+
+Get iNaturalist observations for a date range::
+
+    GET /api/v1/observations/from?year=2024&month=8&day=1&store_in_db=true
+
+Retrieve stored observations::
+
+    GET /api/v1/observations/db
+
+Fetching Weather Data
+~~~~~~~~~~~~~~~~~~~~~
+
+Get NASA POWER weather data::
+
+    GET /api/v1/weather?latitude=-33.9249&longitude=18.4073&start_year=2024&start_month=1&start_day=1&end_year=2024&end_month=12&end_day=31&store_in_db=true
+
+Creating Datasets
+~~~~~~~~~~~~~~~~~
+
+Merge observations with weather data::
+
+    GET /api/v1/datasets/merge?start_year=2024&start_month=1&start_day=1&end_year=2024&end_month=12&end_day=31&years_back=5
+
+Export merged dataset::
+
+    GET /api/v1/datasets/export
+
+Advanced Usage
+--------------
+
+Batch Processing
+~~~~~~~~~~~~~~~~
+
+For large datasets, use the async processing capabilities::
+
+    # Process multiple years of data
+    GET /api/v1/datasets/merge?start_year=2020&start_month=1&start_day=1&end_year=2024&end_month=12&end_day=31&years_back=10
+
+Data Refresh
+~~~~~~~~~~~~
+
+Update weather data for existing observations::
+
+    POST /api/v1/datasets/refresh-weather
+
+Configuration
+-------------
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+The application supports the following environment variables:
+
+* ``MONGODB_URL``: MongoDB connection string (default: mongodb://localhost:27017/invasive_db)
+* ``LOG_LEVEL``: Logging level (default: INFO)
+* ``API_TIMEOUT``: API request timeout in seconds (default: 30)
+
+Database Configuration
+~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB collections used:
+
+* ``inat_observations``: Species observation data
+* ``weather_data``: Daily weather time series
+* ``weather_features``: Computed weather features
+
+Error Handling
+--------------
+
+The API provides comprehensive error handling:
+
+* **400 Bad Request**: Invalid parameters or date ranges
+* **404 Not Found**: No data found for specified criteria
+* **500 Internal Server Error**: Database or API communication errors
+
+Common Issues
+~~~~~~~~~~~~~
+
+**MongoDB Connection Issues**::
+
+    # Check if MongoDB is running
+    sudo systemctl status mongod
+    
+    # Check connection string
+    mongo mongodb://localhost:27017/invasive_db
+
+**API Timeout Issues**::
+
+    # Reduce date range for large queries
+    # Use smaller years_back values
+    # Check internet connection
+
+**Memory Issues**::
+
+    # Process smaller date ranges
+    # Increase system memory
+    # Use pagination for large datasets
+
+Performance Tips
+----------------
+
+* Use concurrent processing for multiple observations
+* Limit date ranges for initial testing
+* Monitor MongoDB storage usage
+* Use appropriate years_back values (1-10 years)
+* Export data regularly to prevent large accumulations

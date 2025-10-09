@@ -1,11 +1,10 @@
 """
 GBIF Data Fetcher Service
-========================
 
-Asynchronous service for fetching and processing global occurrence data from GBIF API.
-Supports large-scale data retrieval with quality filtering, pagination, and error handling.
+Asynchronous service for fetching global occurrence data from GBIF API with
+quality filtering, pagination, and error handling.
 
-GBIF API Documentation: https://www.gbif.org/developer/occurrence
+GBIF API: https://www.gbif.org/developer/occurrence
 """
 
 import aiohttp
@@ -277,123 +276,3 @@ class GBIFFetcher:
         
         logger.info(f"Successfully fetched {len(all_occurrences):,} occurrences")
         return all_occurrences
-    
-    def process_occurrence_record(self, record: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Process and clean a GBIF occurrence record.
-        
-        Args:
-            record: Raw GBIF occurrence record
-            
-        Returns:
-            Cleaned occurrence record
-        """
-        try:
-            # Extract core fields
-            processed = {
-                "gbif_id": record.get("key"),
-                "scientific_name": record.get("scientificName"),
-                "species": record.get("species"),
-                "genus": record.get("genus"),
-                "family": record.get("family"),
-                
-                # Location
-                "latitude": record.get("decimalLatitude"),
-                "longitude": record.get("decimalLongitude"),
-                "coordinate_uncertainty": record.get("coordinateUncertaintyInMeters"),
-                "elevation": record.get("elevation"),
-                "depth": record.get("depth"),
-                
-                # Geography
-                "country": record.get("country"),
-                "country_code": record.get("countryCode"),
-                "state_province": record.get("stateProvince"),
-                "locality": record.get("locality"),
-                
-                # Temporal
-                "event_date": record.get("eventDate"),
-                "year": record.get("year"),
-                "month": record.get("month"),
-                "day": record.get("day"),
-                
-                # Data quality
-                "basis_of_record": record.get("basisOfRecord"),
-                "occurrence_status": record.get("occurrenceStatus"),
-                "has_geospatial_issues": record.get("hasGeospatialIssue", False),
-                
-                # Data provenance
-                "dataset_key": record.get("datasetKey"),
-                "publisher": record.get("publisher"),
-                "institution_code": record.get("institutionCode"),
-                "collection_code": record.get("collectionCode"),
-                
-                # Processing metadata
-                "gbif_fetch_date": datetime.utcnow().isoformat(),
-                "data_source": "GBIF"
-            }
-            
-            # Clean up None values
-            return {k: v for k, v in processed.items() if v is not None}
-            
-        except Exception as e:
-            logger.error(f"Error processing occurrence record: {e}")
-            return record  # Return original if processing fails
-
-# Convenience functions for common operations
-async def fetch_pyracantha_global(max_records: Optional[int] = None) -> List[Dict[str, Any]]:
-    """
-    Fetch global Pyracantha angustifolia (Franch.) C.K.Schneid. occurrences from GBIF.
-    
-    Uses the complete scientific name with authority to get the specific taxon
-    (~3,300 records) rather than the broader narrowleaf firethorn group (~19,500).
-    
-    Args:
-        max_records: Maximum records to fetch (None for all ~3,300)
-        
-    Returns:
-        List of processed occurrence records
-    """
-    async with GBIFFetcher() as fetcher:
-        return await fetcher.fetch_all_occurrences(
-            "Pyracantha angustifolia (Franch.) C.K.Schneid.",
-            quality_filters=True,
-            coordinate_uncertainty_max=10000,  # 10km max uncertainty
-            max_records=max_records
-        )
-
-async def fetch_pyracantha_south_africa() -> List[Dict[str, Any]]:
-    """
-    Fetch South African Pyracantha angustifolia (Franch.) C.K.Schneid. occurrences for validation.
-    
-    Uses the complete scientific name with authority for taxonomic precision.
-    
-    Returns:
-        List of South African occurrence records
-    """
-    async with GBIFFetcher() as fetcher:
-        return await fetcher.fetch_all_occurrences(
-            "Pyracantha angustifolia (Franch.) C.K.Schneid.",
-            quality_filters=True,
-            country="ZA",  # South Africa
-            coordinate_uncertainty_max=5000,  # 5km max uncertainty for validation
-        )
-
-async def get_species_info(scientific_name: str) -> Optional[Dict[str, Any]]:
-    """
-    Get species information from GBIF.
-    
-    Args:
-        scientific_name: Scientific name to look up
-        
-    Returns:
-        Species information or None if not found
-    """
-    async with GBIFFetcher() as fetcher:
-        species_key = await fetcher.get_species_key(scientific_name)
-        if species_key:
-            return {
-                "scientific_name": scientific_name,
-                "gbif_species_key": species_key,
-                "lookup_date": datetime.utcnow().isoformat()
-            }
-        return None

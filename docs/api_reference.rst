@@ -35,22 +35,12 @@ System health monitoring and pipeline validation.
    :undoc-members:
    :show-inheritance:
 
-GBIF Router
-~~~~~~~~~~~
+Environmental Router
+~~~~~~~~~~~~~~~~~~~~
 
-Global species occurrence data collection from GBIF database.
+WorldClim and SRTM elevation data extraction for environmental enrichment.
 
-.. automodule:: app.routers.gbif
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-WorldClim Router
-~~~~~~~~~~~~~~~~
-
-Real climate data download and extraction from WorldClim v2.1.
-
-.. automodule:: app.routers.worldclim
+.. automodule:: app.routers.environmental
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,61 +58,15 @@ ML dataset creation, enrichment, and export functionality.
 Predictions Router
 ~~~~~~~~~~~~~~~~~~
 
-Invasion risk prediction and mapping visualization.
+Invasion risk prediction and mapping visualization using XGBoost.
 
 .. automodule:: app.routers.predictions
    :members:
    :undoc-members:
    :show-inheritance:
 
-Weather Router
-~~~~~~~~~~~~~~
-
-NASA POWER API integration for meteorological data.
-
-.. automodule:: app.routers.weather
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Observations Router (Legacy)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Legacy iNaturalist integration (deprecated - use GBIF instead).
-
-.. automodule:: app.routers.observations
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Weather Router
-~~~~~~~~~~~~~~
-
-.. automodule:: app.routers.weather
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Datasets Router
-~~~~~~~~~~~~~~~
-
-.. automodule:: app.routers.datasets
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Services
 --------
-
-Database Service
-~~~~~~~~~~~~~~~~
-
-MongoDB connection and data management.
-
-.. automodule:: app.services.database
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 GBIF Fetcher
 ~~~~~~~~~~~~
@@ -134,42 +78,32 @@ GBIF API integration service for species occurrence data.
    :undoc-members:
    :show-inheritance:
 
-WorldClim Extractor Service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+WorldClim Extractor
+~~~~~~~~~~~~~~~~~~~
 
-Unified service for WorldClim data operations and environmental data extraction.
+WorldClim v2.1 bioclimate variable extraction from GeoTIFF files.
 
 .. automodule:: app.services.worldclim_extractor
    :members:
    :undoc-members:
    :show-inheritance:
 
-Elevation Extractor Service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Elevation Extractor
+~~~~~~~~~~~~~~~~~~~
 
-SRTM elevation data extraction via Open-Topo-Data API.
+SRTM 30m elevation data extraction via Open-Topo-Data API.
 
 .. automodule:: app.services.elevation_extractor
    :members:
    :undoc-members:
    :show-inheritance:
 
-NASA POWER Fetcher
-~~~~~~~~~~~~~~~~~~
+ML Dataset Generator
+~~~~~~~~~~~~~~~~~~~~
 
-NASA POWER API integration for meteorological data.
+Generate ML-ready CSV datasets with environmental enrichment.
 
-.. automodule:: app.services.nasa_fetcher
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-iNaturalist Fetcher (Legacy)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Legacy iNaturalist API integration.
-
-.. automodule:: app.services.inat_fetcher
+.. automodule:: app.services.generate_ml_ready_datasets
    :members:
    :undoc-members:
    :show-inheritance:

@@ -4,7 +4,7 @@ Overview
 Project Purpose
 ---------------
 
-The PRJ381 Data Preprocessing API is a comprehensive machine learning data preparation service designed for species distribution modeling and transfer learning applications. It serves as a complete pipeline for creating high-quality training datasets from global biodiversity data enriched with authentic environmental variables.
+The PRJ381 Species Distribution Modeling API is a production-ready FastAPI service designed for invasive species risk assessment and transfer learning. It provides a complete pipeline for creating ML-ready datasets from global biodiversity data enriched with real environmental variables (WorldClim climate + SRTM elevation).
 
 Key Features
 ------------
@@ -13,36 +13,36 @@ Data Collection
 ~~~~~~~~~~~~~~~
 
 * **GBIF Integration**: Fetches global species occurrence data from the GBIF database (1.4+ billion records)
-* **Transfer Learning Focus**: Collects global training data for local model validation
-* **Asynchronous Processing**: High-performance concurrent data retrieval
-* **Data Validation**: Ensures positional accuracy and taxonomic consistency
-* **Flexible Filtering**: Species, geographic region, and temporal filtering
+* **Transfer Learning Focus**: Global training data for local validation (e.g., global → South Africa)
+* **Asynchronous Processing**: Batch processing with progress tracking
+* **Data Validation**: Coordinate validation and quality filtering
+* **CSV Export**: Direct ML-ready dataset generation
 
 Environmental Enrichment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **WorldClim v2.1 Integration**: Real bioclimate variable extraction from scientific-grade raster data
-* **NASA POWER API Integration**: Meteorological data for enhanced modeling capabilities
-* **19 Climate Variables**: Complete bioclimate characterization (temperature, precipitation, seasonality)
+* **WorldClim v2.1 Integration**: Real bioclimate variable extraction from scientific-grade GeoTIFF rasters
+* **SRTM Elevation Data**: NASA SRTM 30m elevation via Open-Topo-Data API
+* **8 Core Climate Variables**: Temperature, precipitation, and seasonality (bio1, bio4-6, bio12-15)
 * **Global Coverage**: Worldwide environmental data at 10 arcminute resolution
-* **Data Integrity**: Real data only - no fake, dummy, or placeholder values
+* **Data Integrity**: Real data only - returns None when unavailable (no fake values)
 
 Machine Learning Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **ML-Ready Datasets**: Exports optimized datasets for Random Forest, XGBoost, and Neural Networks
-* **Feature Engineering**: 17 carefully selected features for optimal model performance
+* **ML-Ready Datasets**: CSV exports optimized for XGBoost and other tree-based models
+* **13 Base Features**: Latitude, longitude, elevation, 8 bioclimate variables, temporal encoding
 * **Transfer Learning Support**: Global training datasets for local validation
-* **Multiple Export Formats**: CSV, JSON support for various ML frameworks
-* **Data Quality Metrics**: Comprehensive dataset validation and quality reporting
+* **Production Model**: XGBoost classifier (81% accuracy, 98% sensitivity)
+* **Risk Mapping**: Real-time invasion probability heatmaps
 
 Data Management
 ~~~~~~~~~~~~~~~
 
-* **MongoDB Persistence**: Scalable document storage for multi-source data integration
-* **Batch Processing**: Efficient handling of large-scale data operations
-* **Environmental Caching**: Smart caching to minimize redundant API calls
-* **Export Capabilities**: Multiple format support for downstream ML applications
+* **File-Based Storage**: Direct CSV export for ML training (no database required)
+* **Batch Processing**: Efficient handling of large-scale environmental data extraction
+* **API Rate Limiting**: Respectful Open-Topo-Data API usage (1-second delays)
+* **Stateless Design**: Docker-ready, horizontally scalable architecture
 
 API Architecture
 ~~~~~~~~~~~~~~~~
@@ -57,9 +57,9 @@ Data Integrity Policy
 ~~~~~~~~~~~~~~~~~~~~~
 
 * **Real Data Only**: Zero tolerance for fake, dummy, or placeholder environmental values
-* **Transparent Sources**: All data sources clearly labeled and trackable
+* **Transparent Sources**: WorldClim v2.1 (GeoTIFF), SRTM (Open-Topo-Data), GBIF (occurrence records)
 * **Missing Data Handling**: Returns None/NaN when data unavailable (never generates fake values)
-* **Scientific Standards**: Uses data sources trusted by the global research community
+* **Scientific Standards**: Uses datasets trusted by the global ecological research community
 
 Use Cases
 ---------

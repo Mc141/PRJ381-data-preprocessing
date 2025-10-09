@@ -47,6 +47,23 @@ LOCAL_DATA_PATH = os.path.join(DATA_DIR, 'local_validation_ml_ready.csv')
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.pkl')
 RESULTS_PATH = os.path.join(os.path.dirname(__file__), '..', 'MODEL_RESULTS.md')
 
+def _create_background_points(data, n_points, lat_bounds=(-90, 90), lon_bounds=(-180, 180), random_state=42):
+    """Helper to create background points by offsetting a subset of real data locations."""
+    background = data.sample(n=min(len(data), n_points), random_state=random_state).copy()
+    rng = np.random.RandomState(random_state)
+    
+    background['latitude'] = np.clip(
+        background['latitude'] + rng.uniform(-0.5, 0.5, size=len(background)),
+        lat_bounds[0], lat_bounds[1]
+    )
+    background['longitude'] = np.clip(
+        background['longitude'] + rng.uniform(-0.5, 0.5, size=len(background)),
+        lon_bounds[0], lon_bounds[1]
+    )
+    background['presence'] = 0
+    
+    return background
+
 def load_data():
     """
     Load and prepare the datasets, creating minimal background points if necessary.
@@ -62,59 +79,26 @@ def load_data():
     print(f"Local validation dataset shape: {local_data.shape}")
     
     # Ensure 'presence' column exists
-    if 'presence' not in global_data.columns:
-        print("'presence' column not found in global data, creating it")
-        global_data['presence'] = 1
-        
-    if 'presence' not in local_data.columns:
-        print("'presence' column not found in local data, creating it")
-        local_data['presence'] = 1
+    for name, df in [("global", global_data), ("local", local_data)]:
+        if 'presence' not in df.columns:
+            print(f"'presence' column not found in {name} data, creating it")
+            df['presence'] = 1
     
-    # Check if we have any absence data (class 0)
+    # Create background points if needed
     if 1 not in global_data['presence'].unique() or 0 not in global_data['presence'].unique():
         print("Warning: Binary classification requires both presence (1) and absence (0) classes.")
         print("Creating minimal background points by using environmental locations at a distance from occurrences.")
-        
-        # Create a minimal set of background points by using a subset of the data with offset coordinates
-        # This is more realistic than completely random points as we're using real environmental conditions
-        # But we're not claiming these are true absences - just background comparison points
-        background_data = global_data.sample(n=min(len(global_data), 500), random_state=42).copy()
-        
-        # Add offset to coordinates so they're not at the exact same locations as presence points
-        # but still in similar environmental conditions (not completely random)
-        rng = np.random.RandomState(42)
-        background_data['latitude'] = background_data['latitude'] + rng.uniform(-0.5, 0.5, size=len(background_data))
-        background_data['longitude'] = background_data['longitude'] + rng.uniform(-0.5, 0.5, size=len(background_data))
-        
-        # Clip to realistic bounds
-        background_data['latitude'] = np.clip(background_data['latitude'], -90, 90)
-        background_data['longitude'] = np.clip(background_data['longitude'], -180, 180)
-        background_data['presence'] = 0
-        
+        background_data = _create_background_points(global_data, 500)
         print(f"Created {len(background_data)} background comparison points")
-        
-        # Combine datasets
         train_data = pd.concat([global_data, background_data], ignore_index=True)
     else:
         print("Using provided presence/absence data without modification")
         train_data = global_data
     
-    # Do the same check for local validation data
+    # Create background points for validation if needed
     if 1 not in local_data['presence'].unique() or 0 not in local_data['presence'].unique():
         print("Creating minimal background points for local validation")
-        
-        background_local = local_data.sample(n=min(len(local_data), 100), random_state=42).copy()
-        
-        rng = np.random.RandomState(42)
-        background_local['latitude'] = background_local['latitude'] + rng.uniform(-0.5, 0.5, size=len(background_local))
-        background_local['longitude'] = background_local['longitude'] + rng.uniform(-0.5, 0.5, size=len(background_local))
-        
-        # Clip to South Africa bounds
-        background_local['latitude'] = np.clip(background_local['latitude'], -35, -22)
-        background_local['longitude'] = np.clip(background_local['longitude'], 16, 33)
-        background_local['presence'] = 0
-        
-        # Combine datasets
+        background_local = _create_background_points(local_data, 100, lat_bounds=(-35, -22), lon_bounds=(16, 33))
         local_validation = pd.concat([local_data, background_local], ignore_index=True)
     else:
         local_validation = local_data
@@ -124,7 +108,7 @@ def load_data():
     
     return train_data, local_validation
 
-def prepare_features(train_data, local_validation=None):
+def prepare_features(train_data, local_validation):
     """Prepare features for model training and evaluation."""
     # Define features for model
     feature_columns = ['latitude', 'longitude', 'elevation', 
@@ -134,13 +118,10 @@ def prepare_features(train_data, local_validation=None):
     # Split into features and target
     X_train = train_data[feature_columns]
     y_train = train_data['presence']
+    X_local = local_validation[feature_columns]
+    y_local = local_validation['presence']
     
-    if local_validation is not None:
-        X_local = local_validation[feature_columns]
-        y_local = local_validation['presence']
-        return X_train, y_train, X_local, y_local
-    
-    return X_train, y_train
+    return X_train, y_train, X_local, y_local
 
 def train_xgboost_model(X_train, y_train):
     """Train an XGBoost model with hyperparameter tuning."""
@@ -157,18 +138,6 @@ def train_xgboost_model(X_train, y_train):
     
     # Define hyperparameter grid for tuning
     param_grid = {
-        'max_depth': [3, 5, 7],
-        'learning_rate': [0.01, 0.1, 0.2],
-        'n_estimators': [50, 100, 200],
-        'subsample': [0.8, 1.0],
-        'colsample_bytree': [0.8, 1.0],
-        'gamma': [0, 0.1],
-        'reg_alpha': [0, 0.1, 1],
-        'reg_lambda': [0, 0.1, 1]
-    }
-    
-    # For faster execution, we'll use a smaller grid
-    small_param_grid = {
         'max_depth': [3, 6],
         'learning_rate': [0.1],
         'n_estimators': [100],
@@ -177,13 +146,16 @@ def train_xgboost_model(X_train, y_train):
     }
     
     print("Performing hyperparameter tuning...")
-    model = xgb.XGBClassifier(objective='binary:logistic', random_state=42, use_label_encoder=False,
-                              eval_metric='auc')
+    model = xgb.XGBClassifier(
+        objective='binary:logistic', 
+        random_state=42, 
+        use_label_encoder=False,
+        eval_metric='auc'
+    )
     
-    # Use smaller grid for quicker tuning
     grid_search = GridSearchCV(
         estimator=model,
-        param_grid=small_param_grid,
+        param_grid=param_grid,
         scoring='roc_auc',
         cv=3,
         verbose=1
@@ -213,50 +185,31 @@ def evaluate_model(model, X_local, y_local):
     """Evaluate the model on local validation data using standardized metrics."""
     print("\nEvaluating model on local validation data...")
     
-    # Get raw predictions and probabilities
-    y_pred = model.predict(X_local)
+    # Get predictions and probabilities
     y_prob = model.predict_proba(X_local)[:, 1]
     
-    # Find optimal threshold using our standardized function
-    try:
-        optimal_threshold, metrics = find_optimal_threshold(y_local, y_prob)
-        print(f"Optimal classification threshold: {optimal_threshold:.4f}")
-        
-        # Extract key metrics for easy access
-        accuracy = metrics['accuracy']
-        auc = metrics['auc'] 
-        avg_precision = metrics['average_precision']
-        sensitivity = metrics['sensitivity']
-        specificity = metrics['specificity']
-        f1 = metrics['f1_score']
-        
-        print("\nModel performance with optimal threshold:")
-        print(f"Accuracy: {accuracy:.4f}")
-        print(f"ROC AUC: {auc:.4f}")
-        print(f"Average Precision: {avg_precision:.4f}")
-        print(f"Sensitivity (Recall): {sensitivity:.4f}")
-        print(f"Specificity: {specificity:.4f}")
-        print(f"F1 Score: {f1:.4f}")
-        
-        # Re-create predictions with optimal threshold
-        y_pred_optimal = (y_prob >= optimal_threshold).astype(int)
-        
-        # Print classification report with optimal threshold
-        print("\nClassification Report (with optimal threshold):")
-        print(classification_report(y_local, y_pred_optimal))
-        
-    except Exception as e:
-        print(f"Could not calculate optimal threshold: {e}")
-        # Fallback to standard metrics with default threshold
-        optimal_threshold = 0.5
-        metrics = calculate_standard_metrics(y_local, y_prob)
-        accuracy = metrics['accuracy']
-        auc = metrics['auc']
+    # Find optimal threshold using standardized function
+    optimal_threshold, metrics = find_optimal_threshold(y_local, y_prob)
+    print(f"Optimal classification threshold: {optimal_threshold:.4f}")
+    
+    # Print key metrics
+    print("\nModel performance with optimal threshold:")
+    print(f"Accuracy: {metrics['accuracy']:.4f}")
+    print(f"ROC AUC: {metrics['auc']:.4f}")
+    print(f"Average Precision: {metrics['average_precision']:.4f}")
+    print(f"Sensitivity (Recall): {metrics['sensitivity']:.4f}")
+    print(f"Specificity: {metrics['specificity']:.4f}")
+    print(f"F1 Score: {metrics['f1_score']:.4f}")
+    
+    # Print classification report with optimal threshold
+    y_pred_optimal = (y_prob >= optimal_threshold).astype(int)
+    print("\nClassification Report (with optimal threshold):")
+    print(classification_report(y_local, y_pred_optimal))
     
     # Plot ROC curve
     plt.figure(figsize=(10, 6))
     fpr, tpr, _ = roc_curve(y_local, y_prob)
-    plt.plot(fpr, tpr, lw=2, label=f'ROC curve (AUC = {auc:.2f})')
+    plt.plot(fpr, tpr, lw=2, label=f"ROC curve (AUC = {metrics['auc']:.2f})")
     plt.plot([0, 1], [0, 1], 'k--', lw=2)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
@@ -312,10 +265,10 @@ def append_results_to_markdown(metrics, optimal_threshold, feature_importance):
     """Append model results to the markdown file using standardized format."""
     print(f"\nAppending results to {RESULTS_PATH}...")
     
-    # Use our standardized reporting function for the main metrics
+    # Use standardized reporting function for main metrics
     report_metrics_markdown(metrics, "XGBoost", optimal_threshold, RESULTS_PATH)
     
-    # Append model-specific details like feature importance
+    # Append model-specific details
     with open(RESULTS_PATH, 'a') as f:
         f.write("### Top Features by Importance\n")
         f.write("| Feature | Importance |\n")
@@ -326,7 +279,7 @@ def append_results_to_markdown(metrics, optimal_threshold, feature_importance):
         f.write("\n### Model Details\n")
         f.write("- **Model**: XGBoost Classifier\n")
         f.write("- **Hyperparameters**: Tuned via GridSearchCV (best params shown in console)\n")
-        f.write("- **Optimal Threshold**: {optimal_threshold:.4f}\n")
+        f.write(f"- **Optimal Threshold**: {optimal_threshold:.4f}\n")
         f.write("- **Trained on**: Global dataset with background comparison points\n")
         f.write("- **Validated on**: South African dataset\n")
         f.write("- **Model file**: `models/xgboost/model.pkl`\n\n")
@@ -343,27 +296,13 @@ def main():
     
     # Load and prepare data
     train_data, local_validation = load_data()
-    
-    # Use the prepare_features function but handle the return values correctly
-    result = prepare_features(train_data, local_validation)
-    if len(result) == 4:
-        X_train, y_train, X_local, y_local = result
-    else:
-        X_train, y_train = result
-        X_local, y_local = None, None
+    X_train, y_train, X_local, y_local = prepare_features(train_data, local_validation)
     
     # Train model
     model = train_xgboost_model(X_train, y_train)
     
-    # Evaluate model (if we have local validation data)
-    if X_local is not None and y_local is not None:
-        metrics, optimal_threshold = evaluate_model(model, X_local, y_local)
-    else:
-        # If no local validation data, use training data with a warning
-        print("WARNING: No local validation data available for evaluation.")
-        print("Using training data for metrics calculation - results may be overly optimistic.")
-        y_train_prob = model.predict_proba(X_train)[:, 1]
-        metrics, optimal_threshold = find_optimal_threshold(y_train, y_train_prob)
+    # Evaluate model on validation data
+    metrics, optimal_threshold = evaluate_model(model, X_local, y_local)
     
     # Plot feature importance
     feature_importance = plot_feature_importance(model, X_train.columns)

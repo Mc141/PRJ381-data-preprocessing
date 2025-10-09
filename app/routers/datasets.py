@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Dict, Optional, Any
 from pathlib import Path
-import sys
 import logging
+from app.services import generate_ml_ready_datasets as gen
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -39,12 +39,6 @@ async def generate_ml_ready_files(
         Dict[str, Any]: Status, written file paths, and a success message.
     """
     try:
-        repo_root = Path(__file__).resolve().parents[2]
-        if str(repo_root) not in sys.path:
-            sys.path.insert(0, str(repo_root))
-    # Import dataset generator service
-        from app.services import generate_ml_ready_datasets as gen
-
         await gen.run(
             max_global=max_global,
             max_local=max_local,
@@ -52,11 +46,13 @@ async def generate_ml_ready_files(
             verbose=verbose,
         )
 
+        repo_root = Path(__file__).resolve().parents[2]
         data_dir = repo_root / "data"
         written_files = [
             str((data_dir / "global_training_ml_ready.csv").resolve()),
             str((data_dir / "local_validation_ml_ready.csv").resolve()),
         ]
+        
         return {
             "status": "success",
             "written_files": written_files,
