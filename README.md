@@ -2,7 +2,7 @@
 
 **Status:** Production Ready (2025)
 
-A robust FastAPI service for global invasive species data processing, environmental enrichment, and transfer learning. This API supports ML-ready dataset creation, model training, and risk prediction, with full Docker/Heroku deployment support.
+A robust FastAPI service for global invasive species data processing, environmental enrichment, and transfer learning. This API supports ML-ready dataset creation, model training, and risk prediction, with full Docker containerization and Render cloud deployment support.
 
 ---
 
@@ -137,47 +137,63 @@ print(f"Accuracy: {accuracy:.2%}")
 
 ---
 
-## Deployment (Docker & Heroku)
+## Deployment (Docker & Render)
 
 ### Local Docker
 
 ```bash
 # Build and run locally
-$ docker build -t prj381-api .
-$ docker run -p 8000:8000 prj381-api
+docker build -t prj381-api .
+docker run -p 8000:8000 prj381-api
 # API: http://localhost:8000/docs
 ```
 
-### Heroku (Container Stack)
+### Render (Cloud Deployment)
 
-1. Install [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
-2. Log in:
-   ```
-   heroku login
-   heroku container:login
-   ```
-3. Create/set up app:
-   ```
-   heroku create your-app-name
-   heroku stack:set container -a your-app-name
-   ```
-4. Build and push:
-   ```
-   $env:DOCKER_DEFAULT_PLATFORM="linux/amd64"
-   heroku container:push web -a your-app-name
-   heroku container:release web -a your-app-name
-   ```
-5. Open:
-   ```
-   heroku open -a your-app-name
-   # https://your-app-name.herokuapp.com/
-   ```
+1. **Prerequisites:**
+   - GitHub repository connected to Render
+   - Dockerfile in project root
+   - requirements.txt with all dependencies
+
+2. **Create Web Service:**
+   - Log in to [Render Dashboard](https://dashboard.render.com/)
+   - Click **New +** → **Web Service**
+   - Connect your GitHub repository
+   - Configure the service:
+     - **Name:** `prj381-api` (or your preferred name)
+     - **Environment:** `Docker`
+     - **Region:** Select closest to your users
+     - **Instance Type:** Free or paid tier based on needs
+     - **Dockerfile Path:** `./Dockerfile` (default)
+
+3. **Environment Variables (Optional):**
+   - Set any required environment variables in Render dashboard
+   - Example: `PORT=8000` (Render auto-detects from Dockerfile)
+
+4. **Deploy:**
+   - Click **Create Web Service**
+   - Render automatically builds and deploys your Docker container
+   - Access your API at: `https://your-app-name.onrender.com/`
+
+5. **Auto-Deploy:**
+   - Render automatically redeploys on every push to your connected branch
+   - Monitor deployments in the Render dashboard
 
 **Deployment files:**
 
-- `Dockerfile`, `requirements.txt`, `Procfile`, `.dockerignore`
+- `Dockerfile`, `requirements.txt`, `.dockerignore`
 
-> **Note:** Heroku Container Registry may require Docker Desktop <= 4.22.0 for compatibility.
+**Useful Render Commands:**
+
+```bash
+# View logs (from Render dashboard or CLI)
+render logs -s your-service-name
+
+# Manual deploy (if auto-deploy disabled)
+git push origin main  # Trigger deployment
+```
+
+> **Note:** Render's free tier may experience cold starts. For production workloads, consider paid instance types for better performance.
 
 ---
 
@@ -197,5 +213,5 @@ $ docker run -p 8000:8000 prj381-api
 | Web Framework | FastAPI               |
 | Geospatial    | `geopy`, `folium`     |
 | ML            | scikit-learn, xgboost |
-| Deployment    | Docker, Heroku        |
+| Deployment    | Docker, Render        |
 | Docs          | Sphinx, OpenAPI       |
