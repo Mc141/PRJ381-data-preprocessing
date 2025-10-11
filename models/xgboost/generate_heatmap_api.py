@@ -335,18 +335,147 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
     '''
     folium.Element(title_html).add_to(risk_map)
     
-    # Define color function for risk levels
+    # Define color function for risk levels with high granularity
     def get_color(risk):
-        if risk > 0.8:
-            return '#FF0000'  # Red - Very high risk
-        elif risk > 0.6:
-            return '#FFA500'  # Orange - High risk
-        elif risk > 0.4:
-            return '#FFFF00'  # Yellow - Medium risk
-        elif risk > 0.2:
-            return '#00FF00'  # Green - Low risk
+        """
+        Enhanced color mapping with fine-grained intervals for better visualization.
+        
+        Color Scheme:
+        - 0-20%: Blue shades (very low risk)
+        - 20-40%: Green to Lime (low risk)
+        - 40-60%: Yellow shades (moderate risk)
+        - 60-80%: Orange shades (high risk)
+        - 80-100%: Red shades with 1% intervals (very high risk)
+        """
+        # CRITICAL RISK ZONE (80-100%): 1% intervals with distinct reds
+        if risk >= 0.99:
+            return '#660000'  # Darkest Red - 99-100%
+        elif risk >= 0.98:
+            return '#750000'  # Very Dark Red - 98-99%
+        elif risk >= 0.97:
+            return '#850000'  # Deep Dark Red - 97-98%
+        elif risk >= 0.96:
+            return '#940000'  # Dark Maroon - 96-97%
+        elif risk >= 0.95:
+            return '#A30000'  # Maroon - 95-96%
+        elif risk >= 0.94:
+            return '#B20000'  # Deep Red - 94-95%
+        elif risk >= 0.93:
+            return '#C10000'  # Blood Red - 93-94%
+        elif risk >= 0.92:
+            return '#D00000'  # Dark Red - 92-93%
+        elif risk >= 0.91:
+            return '#E00000'  # Red - 91-92%
+        elif risk >= 0.90:
+            return '#F00000'  # Pure Red - 90-91%
+        elif risk >= 0.89:
+            return '#FF0000'  # Bright Red - 89-90%
+        elif risk >= 0.88:
+            return '#FF0F0F'  # Light Red 1 - 88-89%
+        elif risk >= 0.87:
+            return '#FF1E1E'  # Light Red 2 - 87-88%
+        elif risk >= 0.86:
+            return '#FF2D2D'  # Light Red 3 - 86-87%
+        elif risk >= 0.85:
+            return '#FF3C3C'  # Pink Red - 85-86%
+        elif risk >= 0.84:
+            return '#FF4B00'  # Red-Orange 1 - 84-85%
+        elif risk >= 0.83:
+            return '#FF5500'  # Red-Orange 2 - 83-84%
+        elif risk >= 0.82:
+            return '#FF6000'  # Red-Orange 3 - 82-83%
+        elif risk >= 0.81:
+            return '#FF6A00'  # Red-Orange 4 - 81-82%
+        elif risk >= 0.80:
+            return '#FF7500'  # Orange-Red - 80-81%
+        
+        # HIGH RISK ZONE (60-80%): 2% intervals with orange spectrum
+        elif risk >= 0.78:
+            return '#FF8000'  # Dark Orange 1 - 78-80%
+        elif risk >= 0.76:
+            return '#FF8A00'  # Dark Orange 2 - 76-78%
+        elif risk >= 0.74:
+            return '#FF9500'  # Orange 1 - 74-76%
+        elif risk >= 0.72:
+            return '#FF9F00'  # Orange 2 - 72-74%
+        elif risk >= 0.70:
+            return '#FFA500'  # Pure Orange - 70-72%
+        elif risk >= 0.68:
+            return '#FFB000'  # Light Orange 1 - 68-70%
+        elif risk >= 0.66:
+            return '#FFBA00'  # Light Orange 2 - 66-68%
+        elif risk >= 0.64:
+            return '#FFC500'  # Orange-Yellow 1 - 64-66%
+        elif risk >= 0.62:
+            return '#FFCF00'  # Orange-Yellow 2 - 62-64%
+        elif risk >= 0.60:
+            return '#FFD700'  # Gold - 60-62%
+        
+        # MODERATE RISK ZONE (40-60%): 2% intervals with yellow spectrum
+        elif risk >= 0.58:
+            return '#FFE000'  # Deep Yellow 1 - 58-60%
+        elif risk >= 0.56:
+            return '#FFE800'  # Deep Yellow 2 - 56-58%
+        elif risk >= 0.54:
+            return '#FFF000'  # Yellow 1 - 54-56%
+        elif risk >= 0.52:
+            return '#FFF800'  # Yellow 2 - 52-54%
+        elif risk >= 0.50:
+            return '#FFFF00'  # Pure Yellow - 50-52%
+        elif risk >= 0.48:
+            return '#F8FF00'  # Light Yellow 1 - 48-50%
+        elif risk >= 0.46:
+            return '#F0FF00'  # Light Yellow 2 - 46-48%
+        elif risk >= 0.44:
+            return '#E8FF00'  # Yellow-Lime 1 - 44-46%
+        elif risk >= 0.42:
+            return '#E0FF00'  # Yellow-Lime 2 - 42-44%
+        elif risk >= 0.40:
+            return '#D8FF00'  # Lime-Yellow - 40-42%
+        
+        # LOW RISK ZONE (20-40%): 2% intervals with lime to green
+        elif risk >= 0.38:
+            return '#CCFF00'  # Lime 1 - 38-40%
+        elif risk >= 0.36:
+            return '#BFFF00'  # Lime 2 - 36-38%
+        elif risk >= 0.34:
+            return '#B3FF00'  # Lime 3 - 34-36%
+        elif risk >= 0.32:
+            return '#A6FF00'  # Lime 4 - 32-34%
+        elif risk >= 0.30:
+            return '#99FF00'  # Yellow-Green - 30-32%
+        elif risk >= 0.28:
+            return '#80FF00'  # Light Green 1 - 28-30%
+        elif risk >= 0.26:
+            return '#66FF00'  # Light Green 2 - 26-28%
+        elif risk >= 0.24:
+            return '#4DFF00'  # Green-Lime 1 - 24-26%
+        elif risk >= 0.22:
+            return '#33FF00'  # Green-Lime 2 - 22-24%
+        elif risk >= 0.20:
+            return '#1AFF1A'  # Bright Green - 20-22%
+        
+        # VERY LOW RISK ZONE (0-20%): 2% intervals with green to blue
+        elif risk >= 0.18:
+            return '#00FF33'  # Green 1 - 18-20%
+        elif risk >= 0.16:
+            return '#00FF4D'  # Green 2 - 16-18%
+        elif risk >= 0.14:
+            return '#00FF66'  # Green 3 - 14-16%
+        elif risk >= 0.12:
+            return '#00FF80'  # Green-Cyan 1 - 12-14%
+        elif risk >= 0.10:
+            return '#00FF99'  # Green-Cyan 2 - 10-12%
+        elif risk >= 0.08:
+            return '#00FFB3'  # Cyan-Green 1 - 8-10%
+        elif risk >= 0.06:
+            return '#00FFCC'  # Cyan-Green 2 - 6-8%
+        elif risk >= 0.04:
+            return '#00FFE6'  # Light Cyan 1 - 4-6%
+        elif risk >= 0.02:
+            return '#00FFFF'  # Pure Cyan - 2-4%
         else:
-            return '#0000FF'  # Blue - Very low risk
+            return '#00E6FF'  # Bright Cyan - 0-2%
     
     # Define the style function for grid cells
     def style_function(feature):
@@ -431,11 +560,24 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
     # Add the choropleth to the map
     choropleth.add_to(risk_map)
     
-    # Add color scale legend
+    # Add enhanced color scale legend with more granular colors
     colormap = LinearColormap(
-        colors=['blue', 'green', 'yellow', 'orange', 'red'],
+        colors=[
+            '#00E6FF',  # Bright Cyan (0%)
+            '#00FF99',  # Green-Cyan (10%)
+            '#1AFF1A',  # Bright Green (20%)
+            '#99FF00',  # Yellow-Green (30%)
+            '#D8FF00',  # Lime-Yellow (40%)
+            '#FFFF00',  # Pure Yellow (50%)
+            '#FFD700',  # Gold (60%)
+            '#FFA500',  # Pure Orange (70%)
+            '#FF7500',  # Orange-Red (80%)
+            '#FF0000',  # Bright Red (90%)
+            '#660000'   # Darkest Red (100%)
+        ],
         vmin=0, vmax=1,
-        caption='Invasion Risk Probability'
+        caption='Invasion Risk Probability (0% - 100%)',
+        index=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     )
     risk_map.add_child(colormap)
     
