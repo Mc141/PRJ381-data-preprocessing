@@ -541,6 +541,25 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
                 risk_category = "🟦 VERY LOW"
                 risk_description = "Minimal invasion risk. Environmental conditions not favorable."
             
+            # Build Google Maps URL for this cell
+            google_maps_url = f"https://www.google.com/maps/dir/?api=1&destination={top_left[0]},{top_left[1]}"
+
+            # Prebuild popup HTML for this feature (stored as a property)
+            popup_html = (
+                f"<div style='width: 320px; font-family: Arial, sans-serif;'>"
+                f"<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; margin: -10px -10px 10px -10px; border-radius: 8px 8px 0 0; text-align: center;'><h4 style='margin: 0; font-size: 16px;'>📍 Location Risk Assessment</h4></div>"
+                f"<div style='padding: 5px 0;'><table style='width: 100%; border-collapse: collapse;'>"
+                f"<tr style='border-bottom: 1px solid #e0e0e0;'><td style='padding: 8px 5px; font-weight: bold; color: #555;'>🎯 Risk Level:</td><td style='padding: 8px 5px; font-weight: bold; color: #E74C3C;'>{risk_category}</td></tr>"
+                f"<tr style='border-bottom: 1px solid #e0e0e0;'><td style='padding: 8px 5px; font-weight: bold; color: #555;'>📊 Probability:</td><td style='padding: 8px 5px; font-weight: bold; color: #2C3E50;'>{float(risk_value) * 100:.2f}%</td></tr>"
+                f"<tr style='border-bottom: 1px solid #e0e0e0;'><td style='padding: 8px 5px; font-weight: bold; color: #555;'>📍 Latitude:</td><td style='padding: 8px 5px;'>{top_left[0]:.4f}°</td></tr>"
+                f"<tr style='border-bottom: 1px solid #e0e0e0;'><td style='padding: 8px 5px; font-weight: bold; color: #555;'>📍 Longitude:</td><td style='padding: 8px 5px;'>{top_left[1]:.4f}°</td></tr>"
+                f"</table></div>"
+                f"<div style='background-color: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #3498DB; border-radius: 4px;'><div style='font-weight: bold; color: #34495E; margin-bottom: 5px;'>📋 Assessment:</div><div style='font-size: 12px; color: #555; line-height: 1.5;'>{risk_description}</div></div>"
+                f"<div style='text-align: center; margin-top: 15px;'><a href='{google_maps_url}' target='_blank' style='display: inline-block; background: linear-gradient(135deg, #4285F4 0%, #34A853 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);'>🗺️ Navigate with Google Maps</a></div>"
+                f"<div style='margin-top: 12px; padding-top: 10px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 10px; color: #999;'>Click the button above to get directions to this location</div>"
+                f"</div>"
+            )
+
             # Create the polygon coordinates
             polygon = {
                 'type': 'Feature',
@@ -560,7 +579,8 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
                     'risk_category': risk_category,
                     'risk_description': risk_description,
                     'lat': float(top_left[0]),
-                    'lon': float(top_left[1])
+                    'lon': float(top_left[1]),
+                    'popup_html': popup_html
                 }
             }
             features.append(polygon)
@@ -571,7 +591,7 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
         'features': features
     }
     
-    # Add the choropleth layer with enhanced tooltip and popup
+    # Create choropleth with tooltip and reliable HTML popup using GeoJsonPopup
     choropleth = folium.GeoJson(
         geojson_data,
         style_function=style_function,
@@ -594,20 +614,18 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
             max_width=350,
         ),
         popup=folium.GeoJsonPopup(
-            fields=['risk_category', 'risk_percent', 'risk_description', 'lat', 'lon'],
-            aliases=['🎯 Risk Level:', '📊 Probability:', '📋 Assessment:', '📍 Latitude:', '📍 Longitude:'],
+            fields=['popup_html'],
+            aliases=[''],
+            labels=False,
             localize=True,
-            labels=True,
-            style="""
-                background-color: #F8F9FA;
-                border: 3px solid #E74C3C;
-                border-radius: 10px;
-                padding: 15px;
-                font-size: 13px;
-                box-shadow: 0px 6px 15px rgba(0,0,0,0.4);
-            """,
-            max_width=400,
+            parse_html=True,
+            max_width=380,
         ),
+        highlight_function=lambda f: {
+            'weight': 2,
+            'color': '#333333',
+            'fillOpacity': 0.8
+        },
     )
     
     # Add the choropleth to the map
