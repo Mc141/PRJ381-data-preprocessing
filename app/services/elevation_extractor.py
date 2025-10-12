@@ -2,7 +2,7 @@
 Elevation Data Extractor
 
 Extracts SRTM 30m elevation data via Open-Topo-Data API with batch processing,
-caching, and rate limiting. Returns real data only (None when unavailable).
+caching, and rate limiting. Returns None when data are unavailable.
 
 Data Source: NASA SRTM via Open-Topo-Data API (https://www.opentopodata.org/)
 Coverage: Global (60°N to 60°S)

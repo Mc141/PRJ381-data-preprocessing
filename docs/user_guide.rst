@@ -89,27 +89,10 @@ Use trained XGBoost model for invasion risk mapping::
 
 Generates probability heatmap for invasion risk assessment.
 
-Data Integrity
---------------
+Data sources
+------------
 
-This API maintains strict data quality standards:
-
-Real Data Only
-~~~~~~~~~~~~~~
-
-* **No Fake Values**: System never generates dummy or placeholder environmental data
-* **Transparent Sources**: All data sources clearly labeled (WorldClim v2.1, GBIF, SRTM via Open-Topo-Data)
-* **Missing Data Handling**: Returns None/NaN when data unavailable (never fake values)
-
-Quality Verification
-~~~~~~~~~~~~~~~~~~~~
-
-Verify data integrity::
-
-    GET /api/v1/status/health
-    GET /api/v1/status/pipeline-validation
-
-These endpoints validate that the system maintains real data standards and all required files exist.
+This project uses WorldClim v2.1 climate data, SRTM elevation via Open-Topo-Data, and GBIF occurrence records. See the Architecture and Overview sections for details.
 
 Basic Usage Examples
 ~~~~~~~~~~~~~~~~~~~~
@@ -196,7 +179,7 @@ Layers:
 Notes:
 
 * Popups open on click; hover displays tooltips
-* All environmental values are real; missing data are never fabricated
+* Environmental values are pulled from the listed sources; some grid cells may have missing data
 * Use a larger ``--grid_size`` for publication-quality maps (longer runtime)
 
 Advanced Usage
@@ -277,4 +260,4 @@ Performance Tips
 * Respect Open-Topo-Data rate limits (1-second delays)
 * Cache extracted environmental data
 * Monitor disk space for WorldClim files (~500MB total)
-* Use smaller test datasets during development
+* Use smaller sample datasets during development

@@ -2,7 +2,7 @@
 WorldClim Data Extractor
 
 Extracts WorldClim v2.1 bioclimate data from GeoTIFF rasters with batch processing
-and caching. Returns real data only (None when unavailable).
+and caching. Returns None when data are unavailable.
 """
 
 import aiohttp
@@ -26,7 +26,7 @@ class WorldClimDataError(Exception):
 
 class WorldClimExtractor:
     """
-    WorldClim data extractor for real raster files.
+    WorldClim data extractor for local raster files.
     
     Extracts WorldClim v2.1 bioclimate data from local GeoTIFF files with
     caching and batch processing support.
@@ -138,8 +138,8 @@ class WorldClimExtractor:
             "latitude": latitude,
             "longitude": longitude,
             "extraction_date": datetime.utcnow().isoformat(),
-            "data_source": f"WorldClim_v2.1_real_data_{self.resolution}",
-            "extraction_note": "Real data extracted from WorldClim GeoTIFF files"
+            "data_source": f"WorldClim_v2.1_{self.resolution}",
+            "extraction_note": "Values extracted from WorldClim GeoTIFF files"
         }
         
         coords = [(longitude, latitude)]
@@ -173,11 +173,11 @@ class WorldClimExtractor:
                             if values and len(values) > 0:
                                 value = values[0][0]
                                 
-                                # Check for nodata values - convert to None (NaN), NO FAKE DATA
+                                # Check for nodata values - convert to None (NaN)
                                 if dataset.nodata is not None and value == dataset.nodata:
-                                    value = None  # Real nodata value - not dummy/fake data
+                                    value = None
                                 elif np.isnan(value) or np.isinf(value):
-                                    value = None  # Real missing data - not dummy/fake data
+                                    value = None
                                 else:
                                     # Apply scaling if needed (WorldClim temperature is in °C * 10)
                                     if bio_num in [1, 4, 5, 6, 7, 8, 9, 10, 11]:  # Temperature variables
@@ -186,16 +186,16 @@ class WorldClimExtractor:
                                     # Convert numpy types to Python native types
                                     value = float(value) if isinstance(value, np.number) else value
                             else:
-                                value = None  # Real missing data - NO dummy/fake values
+                                value = None
                             
                             result[bio_var] = value
                     else:
                         logger.warning(f"File not found: {file_path}")
-                        result[bio_var] = None  # Error = None/NaN, NOT fake data
+                        result[bio_var] = None
                         
                 except Exception as e:
                     logger.warning(f"Error extracting {bio_var} at {latitude}, {longitude}: {e}")
-                    result[bio_var] = None  # Error = None/NaN, NOT fake data
+                    result[bio_var] = None
             
             # Cache the result
             self.cache[cache_key] = result
@@ -204,18 +204,18 @@ class WorldClimExtractor:
             
         except Exception as e:
             logger.error(f"Error processing coordinate {latitude}, {longitude}: {e}")
-            # Return error result with None values - ERROR = NaN, NOT FAKE DATA!
+            # Return error result with None values
             error_result = {
                 "latitude": latitude,
                 "longitude": longitude,
                 "extraction_error": str(e),
                 "extraction_date": datetime.utcnow().isoformat(),
                 "data_source": f"WorldClim_v2.1_error_{self.resolution}",
-                "extraction_note": "Real WorldClim data unavailable (error)"
+                "extraction_note": "WorldClim values unavailable (error)"
             }
             
             for bio_var in bio_variables:
-                error_result[bio_var] = None  # Error -> None/NaN, never dummy values
+                error_result[bio_var] = None
             
             return error_result
     

@@ -25,7 +25,7 @@ Environmental Enrichment
 * **SRTM Elevation Data**: NASA SRTM 30m elevation via Open-Topo-Data API
 * **8 Core Climate Variables**: Temperature, precipitation, and seasonality (bio1, bio4-6, bio12-15)
 * **Global Coverage**: Worldwide environmental data at 10 arcminute resolution
-* **Data Integrity**: Real data only - returns None when unavailable (no fake values)
+* **Missing Values**: Some grid cells may be unavailable; these are returned as None
 
 Machine Learning Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -53,13 +53,14 @@ API Architecture
 * **Comprehensive Documentation**: Swagger UI and ReDoc interfaces with detailed examples
 * **Error Handling**: Robust error handling with detailed logging and user feedback
 
-Data Integrity Policy
-~~~~~~~~~~~~~~~~~~~~~
+Data provenance
+---------------
 
-* **Real Data Only**: Zero tolerance for fake, dummy, or placeholder environmental values
-* **Transparent Sources**: WorldClim v2.1 (GeoTIFF), SRTM (Open-Topo-Data), GBIF (occurrence records)
-* **Missing Data Handling**: Returns None/NaN when data unavailable (never generates fake values)
-* **Scientific Standards**: Uses datasets trusted by the global ecological research community
+This project uses publicly available datasets for environmental and species data:
+
+* WorldClim v2.1 (bioclimate rasters)
+* SRTM elevation via Open-Topo-Data
+* GBIF (occurrence records)
 
 Use Cases
 ---------
@@ -76,6 +77,5 @@ Technical Highlights
 
 * **Async/Await**: Full asynchronous processing for optimal performance
 * **Concurrent API Calls**: 3-5x speedup through parallel processing
-* **Comprehensive Testing**: 131+ test cases covering all functionality
 * **Professional Documentation**: Auto-generated API docs with Sphinx
 * **Robust Error Handling**: Graceful handling of API failures and data inconsistencies

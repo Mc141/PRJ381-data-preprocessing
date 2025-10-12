@@ -1,11 +1,6 @@
 # PRJ381 Documentation Strategy & Guide
 
-This document serves as both a qui-**Status checking**: Verifies both Sphinx and FastAPI documentation
-- **Flexible options**: Multiple build and serve configurations
-
-## Documentation Types
-
-### Interactive API Documentation guide and comprehensive documentation strategy for the PRJ381 Data Preprocessing API project.
+This document is the central guide for building and maintaining documentation for the PRJ381 Data Preprocessing API. It explains the documentation types, how to build them, and the standards to keep everything consistent.
 
 ## Documentation Architecture
 
@@ -18,8 +13,9 @@ The project uses a **hybrid documentation approach** that leverages the strength
 **Access**: http://localhost:8000/docs (Swagger) or http://localhost:8000/redoc (ReDoc)
 
 **Features**:
-- Interactive endpoint testing
-- Automatic request/response examples  
+
+- Interactive endpoint exploration
+- Automatic request/response examples
 - Schema validation
 - Real-time API exploration
 - Always up-to-date with code
@@ -31,11 +27,11 @@ The project uses a **hybrid documentation approach** that leverages the strength
 **Access**: Built HTML files (served locally or deployed)
 
 **Features**:
+
 - Rich formatting and cross-references
 - Code documentation from docstrings
 - User guides and tutorials
 - Architecture documentation
-- Testing guides
 - PDF export capability
 
 ## Quick Start
@@ -43,6 +39,7 @@ The project uses a **hybrid documentation approach** that leverages the strength
 ### Build All Documentation
 
 **Universal Script (All Platforms):**
+
 ```bash
 python build_docs.py --serve --open
 ```
@@ -50,26 +47,31 @@ python build_docs.py --serve --open
 ### Common Commands
 
 **Build documentation:**
+
 ```bash
 python build_docs.py
 ```
 
 **Build and serve locally:**
+
 ```bash
 python build_docs.py --serve
 ```
 
 **Clean build and serve:**
+
 ```bash
 python build_docs.py --clean --serve --open
 ```
 
 **Skip Sphinx build (check FastAPI only):**
+
 ```bash
 python build_docs.py --no-sphinx
 ```
 
 **Custom port:**
+
 ```bash
 python build_docs.py --serve --port 9000
 ```
@@ -86,11 +88,13 @@ python build_docs.py --serve --port 9000
 ## Documentation Types
 
 ### Interactive API Documentation
+
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
-- **Features**: Interactive testing, real-time schema validation
+- **Features**: Interactive exploration, real-time schema validation
 
 ### Sphinx Documentation
+
 - **Local Build**: `_build/html/index.html`
 - **Features**: Comprehensive guides, architecture docs, detailed API reference
 
@@ -104,27 +108,27 @@ Use **Google-style docstrings** that work well with both FastAPI and Sphinx:
 def example_function(param1: str, param2: int = 10) -> Dict[str, Any]:
     """
     Brief function description that appears in both FastAPI and Sphinx docs.
-    
+
     Longer description with more details. This provides context and
     usage information that appears in Sphinx but not FastAPI.
-    
+
     Args:
         param1 (str): Description of the first parameter
         param2 (int, optional): Description with default value. Defaults to 10.
-        
+
     Returns:
         Dict[str, Any]: Description of return value with structure details
-        
+
     Raises:
         HTTPException: When and why this exception is raised
         ValueError: When validation fails
-        
+
     Example:
         Basic usage example::
-        
+
             result = example_function("test", 20)
             print(result["key"])
-            
+
     Note:
         Additional notes about usage, limitations, or important details.
     """
@@ -141,27 +145,27 @@ async def endpoint_function(
 ):
     """
     Brief endpoint description for FastAPI summary.
-    
+
     Detailed description that explains what the endpoint does,
     when to use it, and any important considerations.
-    
+
     Args:
         param (str): Detailed parameter description for Sphinx
-        
+
     Returns:
         ResponseModel: Description of response structure
-        
+
     Raises:
         HTTPException: 400 for invalid parameters
         HTTPException: 404 when resource not found
-        
+
     Example:
         Request example::
-        
+
             GET /endpoint?param=value
-            
+
         Response::
-        
+
             {"result": "success"}
     """
 ```
@@ -176,19 +180,19 @@ Use Google-style docstrings compatible with both FastAPI and Sphinx:
 def example_endpoint(param: str) -> dict:
     """
     Brief description for FastAPI summary.
-    
+
     Detailed description for Sphinx documentation with examples,
     usage notes, and comprehensive parameter documentation.
-    
+
     Args:
         param (str): Parameter description
-        
+
     Returns:
         dict: Response structure description
-        
+
     Example:
         Usage example::
-        
+
             GET /endpoint?param=value
     """
 ```
@@ -202,7 +206,6 @@ docs/
 ├── api_reference.rst       # API documentation
 ├── user_guide.rst         # User guides
 ├── architecture.rst       # System architecture
-├── testing.rst           # Testing documentation
 ├── README.md              # This comprehensive strategy & guide
 └── _build/                # Generated documentation
     └── html/
@@ -242,7 +245,7 @@ The documentation systems cross-reference each other:
 Sphinx documentation includes links to live API documentation:
 
 ```rst
-See the :swagger:`interactive API documentation </docs>` for testing endpoints.
+See the :swagger:`interactive API documentation </docs>` to try endpoints live.
 ```
 
 ### From FastAPI to Sphinx
@@ -252,7 +255,7 @@ FastAPI descriptions reference comprehensive documentation:
 ```python
 description="""
 ## API Overview
-For complete documentation including guides and examples, 
+For complete documentation including guides and examples,
 see the [Full Documentation](http://localhost:8080) when available.
 """
 ```
@@ -289,7 +292,7 @@ All documentation dependencies are included in `requirements.txt`:
 
 1. Build documentation regularly during development
 2. Review both Sphinx and FastAPI outputs for consistency
-3. Test interactive examples in FastAPI docs
+3. Try interactive examples in FastAPI docs
 4. Validate cross-references and links
 5. Keep dependencies in sync (requirements.txt)
 
@@ -310,7 +313,7 @@ Consider automating:
 1. Documentation building in CI pipeline
 2. Link checking and validation
 3. Deployment to documentation hosting
-4. API documentation testing
+4. API documentation validation
 
 ## Troubleshooting
 
@@ -344,9 +347,9 @@ uvicorn app.main:app --reload
 
 This unified guide covers:
 
-- **Quick start instructions** for immediate use  
-- **Comprehensive strategy** for long-term maintenance  
-- **Best practices** for consistent documentation  
-- **Configuration details** for customization  
-- **Troubleshooting guide** for common issues  
+- **Quick start instructions** for immediate use
+- **Comprehensive strategy** for long-term maintenance
+- **Best practices** for consistent documentation
+- **Configuration details** for customization
+- **Troubleshooting guide** for common issues
 - **Deployment considerations** for production use

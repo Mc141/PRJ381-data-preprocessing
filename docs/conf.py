@@ -30,7 +30,7 @@ extensions = [
 ]
 
 templates_path = []
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'testing.rst']
 
 language = 'en'
 

@@ -26,7 +26,7 @@ This directory contains an XGBoost-based approach for analyzing and visualizing 
 
 ## Files
 
-- `train_model.py`: Script for training and evaluating the XGBoost model using real data only
+- `train_model.py`: Script for training and evaluating the XGBoost model on extracted environmental features
 - `generate_heatmap_api.py`: Script for creating a grid-based choropleth map using real environmental data from API endpoints
 - `model.pkl`: Trained XGBoost model (generated after running `train_model.py`)
 

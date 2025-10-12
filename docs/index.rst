@@ -11,7 +11,6 @@ Welcome to the documentation for the PRJ381 Data Preprocessing API, a comprehens
    user_guide
    api_reference
    architecture
-   testing
 
 Documentation Types
 ===================
@@ -19,14 +18,13 @@ Documentation Types
 This project provides multiple types of documentation to serve different needs:
 
 **For API Users**
-   * **Interactive API Documentation**: :swagger:`Swagger UI </docs>` - Test endpoints directly in your browser
+    * **Interactive API Documentation**: :swagger:`Swagger UI </docs>` - Try endpoints directly in your browser
    * **Alternative API Documentation**: :redoc:`ReDoc </redoc>` - Clean, responsive API reference
    * **User Guide**: :doc:`user_guide` - Step-by-step usage examples
 
 **For Developers**
    * **API Reference**: :doc:`api_reference` - Complete code documentation  
    * **Architecture Guide**: :doc:`architecture` - System design and components
-   * **Testing Guide**: :doc:`testing` - Testing strategies and examples
 
 .. tip::
    **Quick Start**: If you just want to try the API, head to the :swagger:`interactive documentation </docs>` and start making requests!
@@ -47,15 +45,14 @@ This microservice provides:
 
 The service is designed for creating high-quality training datasets for species distribution modeling and invasion risk assessment.
 
-Data Integrity Policy
-=====================
+Data provenance and sources
+===========================
 
-This API maintains strict data integrity standards:
+This API uses environmental and species data from known public datasets:
 
-* **Real Data Only**: No fake, dummy, or placeholder environmental values
-* **Transparent Missing Data**: When data unavailable, returns None/NaN (never fake values)
-* **Clear Data Sources**: All data sources clearly labeled and trackable
-* **Scientific Standards**: Uses WorldClim v2.1 and GBIF data trusted by researchers worldwide
+* WorldClim v2.1 for bioclimate variables
+* SRTM elevation via the Open-Topo-Data API
+* GBIF for species occurrence records
 
 Quick Start
 ===========
@@ -86,19 +83,6 @@ Follow this sequence for optimal results:
 2. **Environmental Data**: `POST /api/v1/environmental/extract-batch` - Extract climate + elevation
 3. **Dataset Creation**: `POST /api/v1/datasets/generate-ml-ready` - Create enriched CSV datasets
 4. **Predictions**: `GET /api/v1/predictions/heatmap` - Generate invasion risk heatmaps
-
-.. note::
-   When running locally, the API will be available at http://localhost:8000
-   
-   The documentation will be built and served automatically using the universal build script.
-   
-   For manual builds::
-   
-       # Build only
-       python build_docs.py
-       
-       # Clean build and serve
-       python build_docs.py --clean --serve
 
 .. note::
    When running locally, the API will be available at http://localhost:8000

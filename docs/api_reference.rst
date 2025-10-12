@@ -6,7 +6,7 @@ This section provides comprehensive documentation for all API modules, automatic
 Interactive API Documentation
 -----------------------------
 
-For interactive testing and exploration of the API endpoints, use the automatically generated documentation:
+For interactive exploration of the API endpoints, use the automatically generated documentation:
 
 * **Swagger UI**: :swagger:`/ <docs>` - Interactive API documentation with request/response examples
 * **ReDoc**: :redoc:`/ <redoc>` - Clean, responsive API documentation

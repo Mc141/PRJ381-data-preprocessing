@@ -4,18 +4,10 @@ Universal Documentation Builder for PRJ381 Data Preprocessing API
 ================================================================
 
 A cross-platform documentation builder that works on Windows, macOS, and Linux.
-Builds both Sphinx documentation and checks FastAPI server status.
+Builds Sphinx documentation and checks the FastAPI server status.
 
-Usa    except FileNotFoundError as e:
-        print(f"[ERROR] {e}")
-        print("[INFO] Make sure you're running this script from the project directory")
-        return 1
-    except KeyboardInterrupt:
-        print("\n[INFO] Interrupted by user")
-        return 0
-    except Exception as e:
-        print(f"[ERROR] Unexpected error: {e}")
-        return 1ython build_docs.py [options]
+Usage:
+    python build_docs.py [options]
 
 Options:
     --serve         Start a local server to view documentation
