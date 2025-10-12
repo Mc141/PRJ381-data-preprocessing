@@ -41,7 +41,8 @@ This microservice provides:
 * **SRTM Elevation Data**: Topographic enrichment via Open-Topo-Data API (30m resolution)
 * **CSV Export**: File-based ML-ready datasets for training and validation
 * **FastAPI REST API**: Modern, async REST endpoints with automatic documentation
-* **XGBoost Model**: Invasion risk prediction and probability heatmap generation
+* **XGBoost Model**: Invasion risk prediction and interactive probability heatmap
+    with hover tooltips, click popups, top-5 risk hotspots, and a Google Maps navigation button
 * **Transfer Learning Support**: Global training datasets for local model validation
 
 The service is designed for creating high-quality training datasets for species distribution modeling and invasion risk assessment.

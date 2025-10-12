@@ -136,6 +136,69 @@ Generate prediction heatmap::
 
     GET /api/v1/datasets/export
 
+Invasion Risk Heatmap (Interactive)
+-----------------------------------
+
+The project includes an interactive, grid-based invasion risk heatmap powered by the XGBoost model and real environmental data (WorldClim v2.1 + SRTM elevation).
+
+How to Generate
+~~~~~~~~~~~~~~~
+
+From the project root, run::
+
+    python -m models.xgboost.generate_heatmap_api --grid_size 20 --month 3
+
+Options:
+
+* ``--grid_size``: Number of grid points per dimension (higher = more detail)
+* ``--month``: Month of year (1-12) for seasonality features
+* ``--western_cape_extended`` or ``--specific_area`` with ``lat/lon`` bounds
+
+Interactive UI Features
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Hover Tooltip:
+
+* Category (Very Low → Critical)
+* Probability (%)
+* Latitude / Longitude
+
+Click Popup (per grid cell):
+
+* Risk level and probability
+* Assessment text explaining the risk category
+* Exact coordinates
+* 🗺️ "Navigate with Google Maps" button that opens directions to the cell location
+
+Risk Hotspots:
+
+* Top 5 highest-risk points marked with color-coded markers
+* Popup includes rank, risk %, and coordinates
+
+Information Panels:
+
+* Top Center: Title with species, month, data sources (WorldClim + SRTM)
+* Top Right: Risk Category Guide with management suggestions
+* Bottom Left: Statistics (distribution by category, mean/max/min, median, std)
+* Bottom Right: Data Sources & Methodology (provenance and disclaimer)
+
+Legend:
+
+* Continuous color scale (0% → 100%)
+* Cyan/Green for low risk → Yellow/Orange → Red for high to critical risk
+
+Layers:
+
+* Invasion Risk Grid (default)
+* Satellite base layer
+* Risk Hotspots (Top 5)
+
+Notes:
+
+* Popups open on click; hover displays tooltips
+* All environmental values are real; missing data are never fabricated
+* Use a larger ``--grid_size`` for publication-quality maps (longer runtime)
+
 Advanced Usage
 --------------
 
