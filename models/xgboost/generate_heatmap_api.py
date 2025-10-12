@@ -27,7 +27,7 @@ import pandas as pd
 from math import pi
 import folium
 from branca.colormap import LinearColormap
-from folium.plugins import MarkerCluster, MeasureControl, Fullscreen
+from folium.plugins import MeasureControl, Fullscreen
 import aiohttp
 import asyncio
 import json
@@ -326,12 +326,25 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
         overlay=False
     ).add_to(risk_map)
     
-    # Add map title
+    # Add enhanced map title with metadata
     title_html = f'''
-        <h3 align="center" style="font-size:18px; margin-top: 10px;">
-            <b>Pyracantha angustifolia Invasion Risk Prediction</b><br>
-            <span style="font-size:14px">{month_name} | XGBoost Model | REAL API DATA</span>
-        </h3>
+        <div style="position: fixed; 
+                    top: 10px; left: 50%; transform: translateX(-50%);
+                    background-color: rgba(255, 255, 255, 0.95); z-index:9999;
+                    padding: 15px 30px; border-radius: 10px; 
+                    border: 3px solid #E74C3C;
+                    box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+                    text-align: center;">
+            <h3 style="margin: 0; color: #2C3E50; font-size: 20px; font-weight: bold;">
+                🌿 <i>Pyracantha angustifolia</i> Invasion Risk Map
+            </h3>
+            <div style="font-size:14px; color: #34495E; margin-top: 5px;">
+                <b>{month_name}</b> | XGBoost ML Model | Real Environmental Data
+            </div>
+            <div style="font-size:11px; color: #7F8C8D; margin-top: 5px; border-top: 1px solid #BDC3C7; padding-top: 5px;">
+                📊 Grid-Based Predictive Analysis | 🛰️ WorldClim v2.1 + SRTM Elevation
+            </div>
+        </div>
     '''
     folium.Element(title_html).add_to(risk_map)
     
@@ -497,7 +510,7 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
     grid_height = lat_grid.shape[0]
     grid_width = lat_grid.shape[1]
     
-    # Create grid cells as GeoJSON features
+    # Create grid cells as GeoJSON features with enhanced properties
     for i in range(grid_height - 1):
         for j in range(grid_width - 1):
             # Create a polygon for each grid cell
@@ -507,6 +520,26 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
             bottom_left = [lat_grid[i+1, j], lon_grid[i+1, j]]
             
             risk_value = risk_2d[i, j]
+            
+            # Determine risk category and icon
+            if risk_value >= 0.9:
+                risk_category = "⛔ CRITICAL"
+                risk_description = "Highest invasion probability. Priority intervention required."
+            elif risk_value >= 0.8:
+                risk_category = "🟥 VERY HIGH"
+                risk_description = "Optimal conditions for invasion. Immediate management required."
+            elif risk_value >= 0.6:
+                risk_category = "🟧 HIGH"
+                risk_description = "Favorable conditions for spread. Early intervention advised."
+            elif risk_value >= 0.4:
+                risk_category = "🟨 MODERATE"
+                risk_description = "Conditions support establishment. Regular monitoring recommended."
+            elif risk_value >= 0.2:
+                risk_category = "🟩 LOW"
+                risk_description = "Low invasion potential. Monitor for occasional occurrences."
+            else:
+                risk_category = "🟦 VERY LOW"
+                risk_description = "Minimal invasion risk. Environmental conditions not favorable."
             
             # Create the polygon coordinates
             polygon = {
@@ -523,7 +556,9 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
                 },
                 'properties': {
                     'risk': float(risk_value),
-                    'risk_percent': f"{float(risk_value) * 100:.1f}%",
+                    'risk_percent': f"{float(risk_value) * 100:.2f}%",
+                    'risk_category': risk_category,
+                    'risk_description': risk_description,
                     'lat': float(top_left[0]),
                     'lon': float(top_left[1])
                 }
@@ -536,24 +571,42 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
         'features': features
     }
     
-    # Add the choropleth layer
+    # Add the choropleth layer with enhanced tooltip and popup
     choropleth = folium.GeoJson(
         geojson_data,
         style_function=style_function,
         name='Invasion Risk Grid',
         tooltip=folium.GeoJsonTooltip(
-            fields=['risk_percent', 'lat', 'lon'],
-            aliases=['Risk:', 'Lat:', 'Lon:'],
+            fields=['risk_category', 'risk_percent', 'lat', 'lon'],
+            aliases=['Category:', 'Probability:', 'Lat:', 'Lon:'],
             localize=True,
             sticky=False,
             labels=True,
             style="""
-                background-color: #F0EFEF;
-                border: 2px solid black;
-                border-radius: 3px;
-                box-shadow: 3px;
+                background-color: #FFFFFF;
+                border: 3px solid #3498DB;
+                border-radius: 8px;
+                box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+                font-size: 13px;
+                font-weight: bold;
+                padding: 10px;
             """,
-            max_width=800,
+            max_width=350,
+        ),
+        popup=folium.GeoJsonPopup(
+            fields=['risk_category', 'risk_percent', 'risk_description', 'lat', 'lon'],
+            aliases=['🎯 Risk Level:', '📊 Probability:', '📋 Assessment:', '📍 Latitude:', '📍 Longitude:'],
+            localize=True,
+            labels=True,
+            style="""
+                background-color: #F8F9FA;
+                border: 3px solid #E74C3C;
+                border-radius: 10px;
+                padding: 15px;
+                font-size: 13px;
+                box-shadow: 0px 6px 15px rgba(0,0,0,0.4);
+            """,
+            max_width=400,
         ),
     )
     
@@ -581,33 +634,241 @@ def create_heatmap(lats, lons, risk_scores, lat_grid, lon_grid, month, output_fi
     )
     risk_map.add_child(colormap)
     
-    # Create marker cluster for observation points (unused but available for extension)
-    marker_cluster = MarkerCluster(name='Observation Points').add_to(risk_map)
+    # Calculate detailed risk statistics
+    very_low = (risk_scores < 0.2).sum()
+    low = ((risk_scores >= 0.2) & (risk_scores < 0.4)).sum()
+    moderate = ((risk_scores >= 0.4) & (risk_scores < 0.6)).sum()
+    high = ((risk_scores >= 0.6) & (risk_scores < 0.8)).sum()
+    very_high = (risk_scores >= 0.8).sum()
+    critical = (risk_scores >= 0.9).sum()
     
-    # Create a statistics panel
+    total_points = len(risk_scores)
+    
+    # Find top risk locations
+    top_risk_indices = np.argsort(risk_scores)[-5:][::-1]
+    
+    # Create enhanced statistics panel with risk distribution
     stats_html = f'''
         <div style="position: fixed; 
-                    bottom: 10px; left: 10px; width: 250px;
+                    bottom: 10px; left: 10px; width: 320px;
                     background-color: white; z-index:9999; font-size:12px;
-                    padding: 10px; border-radius: 5px; border: 1px solid grey;
-                    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
-            <h4 style="margin-top: 0;">Invasion Risk Statistics</h4>
-            <table style="width:100%">
-                <tr><td><b>Region:</b></td><td>{min(lats):.1f}° to {max(lats):.1f}°S, {min(lons):.1f}° to {max(lons):.1f}°E</td></tr>
-                <tr><td><b>Month:</b></td><td>{month_name}</td></tr>
-                <tr><td><b>Grid Points:</b></td><td>{len(risk_scores)}</td></tr>
-                <tr><td><b>Mean Risk:</b></td><td>{np.mean(risk_scores):.3f}</td></tr>
-                <tr><td><b>Maximum Risk:</b></td><td>{np.max(risk_scores):.3f}</td></tr>
-                <tr><td><b>High Risk (>0.7):</b></td><td>{(risk_scores > 0.7).sum()} locations</td></tr>
-                <tr><td><b>Med Risk (0.4-0.7):</b></td><td>{((risk_scores > 0.4) & (risk_scores <= 0.7)).sum()} locations</td></tr>
-                <tr><td><b>Model:</b></td><td>XGBoost with REAL DATA</td></tr>
-            </table>
-            <div style="font-size:10px; margin-top:5px; text-align:right;">
-                Generated on {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}
+                    padding: 15px; border-radius: 8px; border: 2px solid #333;
+                    box-shadow: 4px 4px 10px rgba(0,0,0,0.3);">
+            <h4 style="margin-top: 0; color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 5px;">
+                🌍 Invasion Risk Analysis
+            </h4>
+            
+            <div style="margin-bottom: 10px;">
+                <b style="color: #34495E;">Geographic Coverage</b>
+                <div style="font-size:11px; margin-left: 10px;">
+                    📍 Latitude: {min(lats):.2f}° to {max(lats):.2f}° S<br>
+                    📍 Longitude: {min(lons):.2f}° to {max(lons):.2f}° E<br>
+                    📅 Analysis Month: <b>{month_name}</b><br>
+                    🔢 Grid Resolution: {total_points} points
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 10px; padding: 8px; background-color: #ECF0F1; border-radius: 5px;">
+                <b style="color: #34495E;">Risk Distribution</b>
+                <table style="width:100%; font-size:11px; margin-top:5px;">
+                    <tr style="background-color: #00E6FF20;">
+                        <td>🟦 Very Low (0-20%)</td>
+                        <td align="right"><b>{very_low}</b> ({very_low/total_points*100:.1f}%)</td>
+                    </tr>
+                    <tr style="background-color: #1AFF1A20;">
+                        <td>🟩 Low (20-40%)</td>
+                        <td align="right"><b>{low}</b> ({low/total_points*100:.1f}%)</td>
+                    </tr>
+                    <tr style="background-color: #FFFF0020;">
+                        <td>🟨 Moderate (40-60%)</td>
+                        <td align="right"><b>{moderate}</b> ({moderate/total_points*100:.1f}%)</td>
+                    </tr>
+                    <tr style="background-color: #FFA50020;">
+                        <td>🟧 High (60-80%)</td>
+                        <td align="right"><b>{high}</b> ({high/total_points*100:.1f}%)</td>
+                    </tr>
+                    <tr style="background-color: #FF000020;">
+                        <td>🟥 Very High (80-100%)</td>
+                        <td align="right"><b>{very_high}</b> ({very_high/total_points*100:.1f}%)</td>
+                    </tr>
+                    <tr style="background-color: #66000020; border-top: 1px solid #333;">
+                        <td>⛔ Critical (≥90%)</td>
+                        <td align="right"><b>{critical}</b> ({critical/total_points*100:.1f}%)</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <b style="color: #34495E;">Statistical Summary</b>
+                <div style="font-size:11px; margin-left: 10px;">
+                    📊 Mean Risk: <b>{np.mean(risk_scores)*100:.1f}%</b><br>
+                    📈 Max Risk: <b>{np.max(risk_scores)*100:.1f}%</b><br>
+                    📉 Min Risk: <b>{np.min(risk_scores)*100:.1f}%</b><br>
+                    📏 Std Dev: <b>{np.std(risk_scores)*100:.1f}%</b><br>
+                    🎯 Median Risk: <b>{np.median(risk_scores)*100:.1f}%</b>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 5px; padding: 5px; background-color: #FFF3CD; border-left: 3px solid #FFC107; border-radius: 3px;">
+                <b style="color: #856404;">⚡ Model Info</b>
+                <div style="font-size:10px; margin-top:3px;">
+                    🤖 XGBoost Classifier<br>
+                    🌐 Real-time API Data<br>
+                    🛰️ WorldClim v2.1 + SRTM
+                </div>
+            </div>
+            
+            <div style="font-size:9px; margin-top:8px; text-align:center; color: #7F8C8D; border-top: 1px solid #BDC3C7; padding-top: 5px;">
+                Generated: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}<br>
+                Click any grid cell for details
             </div>
         </div>
     '''
     folium.Element(stats_html).add_to(risk_map)
+    
+    # Add top risk hotspots as markers
+    hotspot_group = folium.FeatureGroup(name='⚠️ Risk Hotspots (Top 5)', show=True)
+    for idx, grid_idx in enumerate(top_risk_indices, 1):
+        lat = lats[grid_idx]
+        lon = lons[grid_idx]
+        risk = risk_scores[grid_idx]
+        
+        # Create custom icon based on rank
+        icon_color = 'darkred' if risk >= 0.9 else 'red' if risk >= 0.8 else 'orange'
+        
+        popup_html = f'''
+            <div style="width:200px;">
+                <h4 style="margin:0; color:{icon_color};">⚠️ Hotspot #{idx}</h4>
+                <hr style="margin:5px 0;">
+                <b>Risk Level:</b> {risk*100:.2f}%<br>
+                <b>Location:</b><br>
+                &nbsp;&nbsp;Lat: {lat:.4f}°<br>
+                &nbsp;&nbsp;Lon: {lon:.4f}°<br>
+                <hr style="margin:5px 0;">
+                <small style="color:#666;">
+                    This location shows {
+                        "CRITICAL" if risk >= 0.9 else 
+                        "VERY HIGH" if risk >= 0.8 else 
+                        "HIGH"
+                    } invasion risk for Pyracantha angustifolia.
+                </small>
+            </div>
+        '''
+        
+        folium.Marker(
+            location=[lat, lon],
+            popup=folium.Popup(popup_html, max_width=250),
+            tooltip=f"Hotspot #{idx}: {risk*100:.1f}% risk",
+            icon=folium.Icon(color=icon_color, icon='warning-sign', prefix='glyphicon')
+        ).add_to(hotspot_group)
+    
+    hotspot_group.add_to(risk_map)
+    
+    # Add risk interpretation legend
+    legend_html = f'''
+        <div style="position: fixed; 
+                    top: 80px; right: 10px; width: 280px;
+                    background-color: white; z-index:9999; font-size:11px;
+                    padding: 12px; border-radius: 8px; border: 2px solid #333;
+                    box-shadow: 4px 4px 10px rgba(0,0,0,0.3);">
+            <h4 style="margin-top: 0; color: #2C3E50; border-bottom: 2px solid #E74C3C; padding-bottom: 5px;">
+                📋 Risk Category Guide
+            </h4>
+            
+            <div style="margin-bottom: 8px; padding: 6px; background-color: #00E6FF15; border-left: 4px solid #00E6FF; border-radius: 3px;">
+                <b style="color: #008B8B;">🟦 Very Low (0-20%)</b>
+                <div style="font-size:10px; margin-top:2px;">
+                    Minimal invasion risk. Environmental conditions are not favorable for establishment.
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 6px; background-color: #1AFF1A15; border-left: 4px solid #1AFF1A; border-radius: 3px;">
+                <b style="color: #228B22;">🟩 Low (20-40%)</b>
+                <div style="font-size:10px; margin-top:2px;">
+                    Low invasion potential. Monitor for occasional occurrences.
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 6px; background-color: #FFFF0015; border-left: 4px solid #FFD700; border-radius: 3px;">
+                <b style="color: #B8860B;">🟨 Moderate (40-60%)</b>
+                <div style="font-size:10px; margin-top:2px;">
+                    Moderate risk. Conditions support establishment. Regular monitoring recommended.
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 6px; background-color: #FFA50015; border-left: 4px solid #FFA500; border-radius: 3px;">
+                <b style="color: #FF8C00;">🟧 High (60-80%)</b>
+                <div style="font-size:10px; margin-top:2px;">
+                    High invasion risk. Favorable conditions for spread. Early intervention advised.
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 6px; background-color: #FF000015; border-left: 4px solid #FF0000; border-radius: 3px;">
+                <b style="color: #DC143C;">🟥 Very High (80-90%)</b>
+                <div style="font-size:10px; margin-top:2px;">
+                    Very high risk. Optimal conditions for invasion. Immediate management required.
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 5px; padding: 6px; background-color: #66000015; border-left: 4px solid #660000; border-radius: 3px;">
+                <b style="color: #8B0000;">⛔ Critical (≥90%)</b>
+                <div style="font-size:10px; margin-top:2px;">
+                    CRITICAL RISK ZONE. Highest invasion probability. Priority intervention area.
+                </div>
+            </div>
+            
+            <div style="font-size:9px; margin-top:8px; padding-top: 5px; border-top: 1px solid #BDC3C7; color: #7F8C8D;">
+                💡 <b>Tip:</b> Hover over grid cells for exact coordinates and risk values. 
+                Click hotspot markers for detailed information.
+            </div>
+        </div>
+    '''
+    folium.Element(legend_html).add_to(risk_map)
+    
+    # Add data attribution footer
+    footer_html = f'''
+        <div style="position: fixed; 
+                    bottom: 10px; right: 10px; width: 300px;
+                    background-color: rgba(255, 255, 255, 0.95); z-index:9999; font-size:10px;
+                    padding: 10px; border-radius: 8px; border: 2px solid #95A5A6;
+                    box-shadow: 4px 4px 10px rgba(0,0,0,0.3);">
+            <h4 style="margin-top: 0; color: #2C3E50; font-size: 12px; border-bottom: 1px solid #BDC3C7; padding-bottom: 5px;">
+                📚 Data Sources & Methodology
+            </h4>
+            
+            <div style="margin-bottom: 5px;">
+                <b style="color: #34495E;">🌍 Environmental Data:</b><br>
+                <span style="margin-left: 10px;">
+                    • WorldClim v2.1 (Climate Variables)<br>
+                    • SRTM 30m (Elevation Data)<br>
+                    • Open-Topo-Data API Integration
+                </span>
+            </div>
+            
+            <div style="margin-bottom: 5px;">
+                <b style="color: #34495E;">🤖 Model Details:</b><br>
+                <span style="margin-left: 10px;">
+                    • Algorithm: XGBoost Classifier<br>
+                    • Features: 17 environmental + temporal<br>
+                    • Training: GBIF occurrence data
+                </span>
+            </div>
+            
+            <div style="margin-bottom: 5px;">
+                <b style="color: #34495E;">🔬 Variables Used:</b><br>
+                <span style="margin-left: 10px; font-size: 9px;">
+                    Bio1, Bio4-6, Bio12-15 (temperature & precipitation)<br>
+                    Elevation, Latitude, Longitude, Seasonality
+                </span>
+            </div>
+            
+            <div style="margin-top: 8px; padding-top: 5px; border-top: 1px solid #BDC3C7; text-align: center; color: #7F8C8D; font-size: 9px;">
+                <b>⚠️ Disclaimer:</b> Predictions are for research purposes.<br>
+                Consult local experts for management decisions.
+            </div>
+        </div>
+    '''
+    folium.Element(footer_html).add_to(risk_map)
     
     # Add layer control
     folium.LayerControl().add_to(risk_map)
