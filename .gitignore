@@ -69,7 +69,7 @@ dist/
 *.egg-info/
 
 # Sphinx documentation
-docs/_build/
+# docs/_build/  # Commented out to allow hosting built docs on Netlify
 docs/_static/
 docs/_templates/
 .readthedocs.yml
