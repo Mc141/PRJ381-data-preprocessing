@@ -1,0 +1,415 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture &mdash; PRJ381 Data Preprocessing API 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="API Reference" href="api_reference.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PRJ381 Data Preprocessing API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#system-overview">System Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#components">Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#api-layer">API Layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#services-layer">Services Layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-layer">Data Layer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-flow">Data Flow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#environmental-data-pipeline">Environmental Data Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ml-ready-dataset-generation">ML-Ready Dataset Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prediction-heatmap-generation">Prediction Heatmap Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#async-architecture">Async Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#concurrency-model">Concurrency Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-handling-strategy">Error Handling Strategy</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#scalability-considerations">Scalability Considerations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#horizontal-scaling">Horizontal Scaling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vertical-scaling">Vertical Scaling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#security-architecture">Security Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#api-security">API Security</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-security">Data Security</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#deployment-architecture">Deployment Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#development-environment">Development Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#production-environment">Production Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#monitoring-and-observability">Monitoring and Observability</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PRJ381 Data Preprocessing API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h1>
+<section id="system-overview">
+<h2>System Overview<a class="headerlink" href="#system-overview" title="Link to this heading"></a></h2>
+<p>The PRJ381 Species Distribution Modeling API follows a modular, stateless architecture designed for Docker deployment, horizontal scalability, and production readiness.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│      GBIF       │    │   WorldClim     │    │  Open-Topo-Data │
+│    Database     │    │   GeoTIFFs      │    │   SRTM API      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                        │                        │
+        │                        │                        │
+        ▼                        ▼                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  FastAPI Application                            │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐│
+│  │   Status    │ │Environmental│ │  Datasets   │ │ Predictions ││
+│  │   Router    │ │   Router    │ │   Router    │ │   Router    ││
+│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘│
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                     Services Layer                          ││
+│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────────┐││
+│  │  │    GBIF     │ │  WorldClim  │ │       Elevation         │││
+│  │  │   Fetcher   │ │  Extractor  │ │       Extractor         │││
+│  │  └─────────────┘ └─────────────┘ └─────────────────────────┘││
+│  └─────────────────────────────────────────────────────────────┘│
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                     Data Layer                              ││
+│  │  CSV Exports: global_training.csv, local_validation.csv     ││
+│  └─────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<section id="components">
+<h2>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h2>
+<section id="api-layer">
+<h3>API Layer<a class="headerlink" href="#api-layer" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><strong>FastAPI Framework</strong></dt><dd><ul class="simple">
+<li><p>High-performance async web framework</p></li>
+<li><p>Automatic API documentation generation</p></li>
+<li><p>Type hints and validation</p></li>
+<li><p>OpenAPI/Swagger integration</p></li>
+</ul>
+</dd>
+<dt><strong>Router Architecture</strong></dt><dd><ul class="simple">
+<li><p>Modular endpoint organization</p></li>
+<li><p>Separation of concerns</p></li>
+<li><p>Consistent error handling</p></li>
+<li><p>RESTful design principles</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="services-layer">
+<h3>Services Layer<a class="headerlink" href="#services-layer" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><strong>GBIF Fetcher Service</strong> (<code class="docutils literal notranslate"><span class="pre">gbif_fetcher.py</span></code>)</dt><dd><ul class="simple">
+<li><p>Async HTTP client for GBIF occurrence API</p></li>
+<li><p>Quality filtering and coordinate validation</p></li>
+<li><p>Pagination and batch processing</p></li>
+<li><p>Species-specific and geographic filtering</p></li>
+</ul>
+</dd>
+<dt><strong>WorldClim Extractor Service</strong> (<code class="docutils literal notranslate"><span class="pre">worldclim_extractor.py</span></code>)</dt><dd><ul class="simple">
+<li><p>Rasterio-based GeoTIFF reading</p></li>
+<li><p>Batch coordinate sampling</p></li>
+<li><p>8 bioclimate variable extraction (bio1, bio4-6, bio12-15)</p></li>
+<li><p>Missing data handling (returns None)</p></li>
+</ul>
+</dd>
+<dt><strong>Elevation Extractor Service</strong> (<code class="docutils literal notranslate"><span class="pre">elevation_extractor.py</span></code>)</dt><dd><ul class="simple">
+<li><p>Open-Topo-Data API integration</p></li>
+<li><p>SRTM 30m elevation data</p></li>
+<li><p>Rate limiting (1-second delays)</p></li>
+<li><p>Batch processing with error handling</p></li>
+</ul>
+</dd>
+<dt><strong>Dataset Generator Service</strong> (<code class="docutils literal notranslate"><span class="pre">generate_ml_ready_datasets.py</span></code>)</dt><dd><ul class="simple">
+<li><p>ML-ready CSV generation</p></li>
+<li><p>13-feature standardized format</p></li>
+<li><p>Transfer learning dataset creation</p></li>
+<li><p>Progress tracking and logging</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="data-layer">
+<h3>Data Layer<a class="headerlink" href="#data-layer" title="Link to this heading"></a></h3>
+<p><strong>CSV Export Format</strong></p>
+<p>ML-ready datasets with 13 standardized features:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>latitude,longitude,elevation,bio1,bio4,bio5,bio6,bio12,bio13,bio14,bio15,month_sin,month_cos
+-33.9249,18.4073,245.0,16.8,574.2,25.3,9.1,515.0,79.0,15.0,48.2,0.5,0.866
+</pre></div>
+</div>
+<p><strong>Feature Descriptions:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">latitude</span></code>: Decimal degrees (-90 to 90)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">longitude</span></code>: Decimal degrees (-180 to 180)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elevation</span></code>: Meters above sea level (SRTM 30m)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bio1</span></code>: Annual mean temperature (°C × 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bio4</span></code>: Temperature seasonality (std dev × 100)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bio5</span></code>: Max temperature of warmest month (°C × 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bio6</span></code>: Min temperature of coldest month (°C × 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bio12</span></code>: Annual precipitation (mm)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bio13</span></code>: Precipitation of wettest month (mm)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bio14</span></code>: Precipitation of driest month (mm)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bio15</span></code>: Precipitation seasonality (coefficient of variation)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">month_sin/cos</span></code>: Temporal encoding (0-1)</p></li>
+</ul>
+</section>
+</section>
+<section id="data-flow">
+<h2>Data Flow<a class="headerlink" href="#data-flow" title="Link to this heading"></a></h2>
+<section id="environmental-data-pipeline">
+<h3>Environmental Data Pipeline<a class="headerlink" href="#environmental-data-pipeline" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Coordinate Input</strong>: Client provides latitude/longitude pairs</p></li>
+<li><p><strong>WorldClim Extraction</strong>: Rasterio samples 8 bioclimate variables from GeoTIFFs</p></li>
+<li><p><strong>Elevation Extraction</strong>: Open-Topo-Data API fetches SRTM elevation (with rate limiting)</p></li>
+<li><p><strong>Data Validation</strong>: Checks for None/NaN values, validates ranges</p></li>
+<li><p><strong>Response</strong>: Returns enriched environmental data</p></li>
+</ol>
+</section>
+<section id="ml-ready-dataset-generation">
+<h3>ML-Ready Dataset Generation<a class="headerlink" href="#ml-ready-dataset-generation" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>GBIF Data Loading</strong>: Load occurrence records (global or local subset)</p></li>
+<li><p><strong>Coordinate Extraction</strong>: Extract unique latitude/longitude pairs</p></li>
+<li><p><strong>Batch Processing</strong>: Process coordinates in batches (default 100)</p></li>
+<li><p><strong>Environmental Enrichment</strong>: Add climate + elevation data</p></li>
+<li><p><strong>Feature Engineering</strong>: Add temporal encoding (month_sin, month_cos)</p></li>
+<li><p><strong>CSV Export</strong>: Write to <code class="docutils literal notranslate"><span class="pre">data/global_training_ml_ready.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">data/local_validation_ml_ready.csv</span></code></p></li>
+</ol>
+</section>
+<section id="prediction-heatmap-generation">
+<h3>Prediction Heatmap Generation<a class="headerlink" href="#prediction-heatmap-generation" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Grid Creation</strong>: Generate lat/lon grid for target region</p></li>
+<li><p><strong>Real-Time Enrichment</strong>: Extract environmental data for each grid point</p></li>
+<li><p><strong>Model Inference</strong>: XGBoost predicts invasion probability</p></li>
+<li><p><strong>Visualization</strong>: Create Folium heatmap with stats panel</p></li>
+<li><p><strong>Export</strong>: Return HTML for display or download</p></li>
+</ol>
+</section>
+</section>
+<section id="async-architecture">
+<h2>Async Architecture<a class="headerlink" href="#async-architecture" title="Link to this heading"></a></h2>
+<section id="concurrency-model">
+<h3>Concurrency Model<a class="headerlink" href="#concurrency-model" title="Link to this heading"></a></h3>
+<p>The application uses Python’s <code class="docutils literal notranslate"><span class="pre">asyncio</span></code> for high-performance concurrent processing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Concurrent weather data fetching</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_weather_for_observations</span><span class="p">(</span><span class="n">observations</span><span class="p">):</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">fetch_weather</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span> <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">observations</span><span class="p">]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">)]</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Benefits:</dt><dd><ul class="simple">
+<li><p>3-5x performance improvement over synchronous processing</p></li>
+<li><p>Efficient resource utilization</p></li>
+<li><p>Non-blocking I/O operations</p></li>
+<li><p>Scalable request handling</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="error-handling-strategy">
+<h3>Error Handling Strategy<a class="headerlink" href="#error-handling-strategy" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><strong>Graceful Degradation</strong></dt><dd><ul class="simple">
+<li><p>Continue processing valid records when some fail</p></li>
+<li><p>Comprehensive logging for debugging</p></li>
+<li><p>Detailed error responses with context</p></li>
+</ul>
+</dd>
+<dt><strong>Retry Logic</strong></dt><dd><ul class="simple">
+<li><p>Automatic retry for transient failures</p></li>
+<li><p>Exponential backoff for rate-limited APIs</p></li>
+<li><p>Circuit breaker pattern for external services</p></li>
+</ul>
+</dd>
+<dt><strong>Data Validation</strong></dt><dd><ul class="simple">
+<li><p>Input validation at API boundaries</p></li>
+<li><p>Schema validation for external API responses</p></li>
+<li><p>Data quality checks throughout pipeline</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="scalability-considerations">
+<h2>Scalability Considerations<a class="headerlink" href="#scalability-considerations" title="Link to this heading"></a></h2>
+<section id="horizontal-scaling">
+<h3>Horizontal Scaling<a class="headerlink" href="#horizontal-scaling" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Stateless Design</strong>: No server-side session state</p></li>
+<li><p><strong>File-based Storage</strong>: CSV exports for distributed processing</p></li>
+<li><p><strong>Load Balancing</strong>: Multiple FastAPI instances behind load balancer</p></li>
+<li><p><strong>Caching Layer</strong>: WorldClim extraction results cache</p></li>
+</ul>
+</section>
+<section id="vertical-scaling">
+<h3>Vertical Scaling<a class="headerlink" href="#vertical-scaling" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Async Processing</strong>: Efficient CPU and memory utilization with asyncio</p></li>
+<li><p><strong>Batch Processing</strong>: Large coordinate sets processed in chunks</p></li>
+<li><p><strong>Memory Management</strong>: Streaming processing for large datasets</p></li>
+<li><p><strong>Resource Monitoring</strong>: Performance metrics and alerting</p></li>
+</ul>
+</section>
+</section>
+<section id="security-architecture">
+<h2>Security Architecture<a class="headerlink" href="#security-architecture" title="Link to this heading"></a></h2>
+<section id="api-security">
+<h3>API Security<a class="headerlink" href="#api-security" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Input Validation</strong>: Comprehensive parameter validation</p></li>
+<li><p><strong>Rate Limiting</strong>: Protection against abuse</p></li>
+<li><p><strong>Error Sanitization</strong>: No sensitive data in error responses</p></li>
+<li><p><strong>HTTPS Enforcement</strong>: Secure communication protocols</p></li>
+</ul>
+</section>
+<section id="data-security">
+<h3>Data Security<a class="headerlink" href="#data-security" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>File System Access Control</strong>: Protected WorldClim data directory</p></li>
+<li><p><strong>Data Encryption</strong>: Encrypted data transmission via HTTPS</p></li>
+<li><p><strong>Audit Logging</strong>: Comprehensive access and operation logging</p></li>
+<li><p><strong>Backup Strategy</strong>: Version-controlled datasets and model files</p></li>
+</ul>
+</section>
+</section>
+<section id="deployment-architecture">
+<h2>Deployment Architecture<a class="headerlink" href="#deployment-architecture" title="Link to this heading"></a></h2>
+<section id="development-environment">
+<h3>Development Environment<a class="headerlink" href="#development-environment" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Local development setup</span>
+uvicorn<span class="w"> </span>app.main:app<span class="w"> </span>--reload<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
+</pre></div>
+</div>
+</section>
+<section id="production-environment">
+<h3>Production Environment<a class="headerlink" href="#production-environment" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Docker Compose example</span>
+<span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.8&#39;</span>
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">api</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8000:8000&quot;</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./data:/app/data</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./models:/app/models</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">WORLDCLIM_PATH=/app/data/worldclim/</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LOG_LEVEL=INFO</span>
+</pre></div>
+</div>
+</section>
+<section id="monitoring-and-observability">
+<h3>Monitoring and Observability<a class="headerlink" href="#monitoring-and-observability" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Health Checks</strong>: Endpoint monitoring and service health</p></li>
+<li><p><strong>Metrics Collection</strong>: Performance and usage metrics</p></li>
+<li><p><strong>Log Aggregation</strong>: Centralized logging and analysis</p></li>
+<li><p><strong>Alerting</strong>: Automated alerts for failures and performance issues</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api_reference.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Martinus Christoffel Wolmarans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

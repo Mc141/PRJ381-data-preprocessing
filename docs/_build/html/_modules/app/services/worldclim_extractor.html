@@ -1,0 +1,416 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.services.worldclim_extractor &mdash; PRJ381 Data Preprocessing API 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PRJ381 Data Preprocessing API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PRJ381 Data Preprocessing API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.services.worldclim_extractor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.services.worldclim_extractor</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">WorldClim Data Extractor</span>
+
+<span class="sd">Extracts WorldClim v2.1 bioclimate data from GeoTIFF rasters with batch processing</span>
+<span class="sd">and caching. Returns None when data are unavailable.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">aiohttp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">rasterio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rasterio.sample</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample_gen</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="WorldClimDataError">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimDataError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WorldClimDataError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom exception for WorldClim data errors.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="WorldClimExtractor">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimExtractor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WorldClimExtractor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    WorldClim data extractor for local raster files.</span>
+<span class="sd">    </span>
+<span class="sd">    Extracts WorldClim v2.1 bioclimate data from local GeoTIFF files with</span>
+<span class="sd">    caching and batch processing support.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="WorldClimExtractor.__init__">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimExtractor.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">resolution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;10m&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the WorldClim data extractor.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            data_dir: Directory to store downloaded WorldClim files</span>
+<span class="sd">            resolution: WorldClim resolution (&quot;10m&quot;, &quot;5m&quot;, &quot;2.5m&quot;, &quot;30s&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">data_dir</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Get an absolute path relative to the project root</span>
+            <span class="n">project_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>  <span class="c1"># app/services -&gt; app -&gt; project_root</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">project_root</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;worldclim&quot;</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using WorldClim data directory: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolution</span> <span class="o">=</span> <span class="n">resolution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># In-memory cache for performance</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;WorldClim extractor initialized - Data dir: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="si">}</span><span class="s2">, Resolution: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="WorldClimExtractor.__aenter__">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimExtractor.__aenter__">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="fm">__aenter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Async context manager entry.&quot;&quot;&quot;</span>
+        <span class="n">connector</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">TCPConnector</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientTimeout</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">(</span>
+            <span class="n">connector</span><span class="o">=</span><span class="n">connector</span><span class="p">,</span> 
+            <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;PRJ381-WorldClim-Extractor/1.0&quot;</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    
+<div class="viewcode-block" id="WorldClimExtractor.__aexit__">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimExtractor.__aexit__">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="fm">__aexit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Async context manager exit.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="WorldClimExtractor.get_bio_dir">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimExtractor.get_bio_dir">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_bio_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the directory path for WorldClim bio files.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Path: Directory containing WorldClim bioclimate files</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Log the absolute path for debugging</span>
+        <span class="n">absolute_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using WorldClim data directory: </span><span class="si">{</span><span class="n">absolute_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span></div>
+
+    
+<div class="viewcode-block" id="WorldClimExtractor.check_files_exist">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimExtractor.check_files_exist">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_files_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if all required WorldClim files exist in the data directory.&quot;&quot;&quot;</span>
+        <span class="n">bio_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bio_dir</span><span class="p">()</span>  <span class="c1"># Use the same directory as used for downloads</span>
+        
+        <span class="n">expected_files</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;wc2.1_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="si">}</span><span class="s2">_bio_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.tif&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">expected_files</span><span class="p">:</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="n">bio_dir</span> <span class="o">/</span> <span class="n">filename</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing file: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;All WorldClim files present&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    
+<div class="viewcode-block" id="WorldClimExtractor.extract_climate_data">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimExtractor.extract_climate_data">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_climate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">longitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+                                 <span class="n">bio_variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract real climate data for a single coordinate.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            latitude: Latitude in decimal degrees</span>
+<span class="sd">            longitude: Longitude in decimal degrees  </span>
+<span class="sd">            bio_variables: List of bioclimate variables (e.g., [&quot;bio1&quot;, &quot;bio12&quot;])</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary with extracted climate data or None values if unavailable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Handle case when bio_variables is a comma-separated string</span>
+        <span class="k">if</span> <span class="n">bio_variables</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bio_variables</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">bio_variables</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;bio</span><span class="si">{</span><span class="n">var</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">bio_variables</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+            
+        <span class="n">cache_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">latitude</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">longitude</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">bio_variables</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="p">[]))</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span>
+        
+        <span class="c1"># Default variables if none specified</span>
+        <span class="k">if</span> <span class="n">bio_variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bio_variables</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bio1&quot;</span><span class="p">,</span> <span class="s2">&quot;bio4&quot;</span><span class="p">,</span> <span class="s2">&quot;bio5&quot;</span><span class="p">,</span> <span class="s2">&quot;bio6&quot;</span><span class="p">,</span> <span class="s2">&quot;bio12&quot;</span><span class="p">,</span> <span class="s2">&quot;bio13&quot;</span><span class="p">,</span> <span class="s2">&quot;bio14&quot;</span><span class="p">,</span> <span class="s2">&quot;bio15&quot;</span><span class="p">]</span>
+        
+        <span class="c1"># Check if data files exist</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_files_exist</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">WorldClimDataError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;WorldClim data files not found in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Please ensure all 19 bio*.tif files are present.&quot;</span>
+            <span class="p">)</span>
+        
+        <span class="n">bio_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bio_dir</span><span class="p">()</span>
+        
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="n">latitude</span><span class="p">,</span>
+            <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="n">longitude</span><span class="p">,</span>
+            <span class="s2">&quot;extraction_date&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s2">&quot;data_source&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;WorldClim_v2.1_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;extraction_note&quot;</span><span class="p">:</span> <span class="s2">&quot;Values extracted from WorldClim GeoTIFF files&quot;</span>
+        <span class="p">}</span>
+        
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">longitude</span><span class="p">,</span> <span class="n">latitude</span><span class="p">)]</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">bio_var</span> <span class="ow">in</span> <span class="n">bio_variables</span><span class="p">:</span>
+                <span class="c1"># Handle case when bio_var might not have &quot;bio&quot; prefix</span>
+                <span class="n">processed_var</span> <span class="o">=</span> <span class="n">bio_var</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">bio_var</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;bio&quot;</span><span class="p">):</span>
+                    <span class="n">processed_var</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;bio</span><span class="si">{</span><span class="n">bio_var</span><span class="si">}</span><span class="s2">&quot;</span>
+                
+                <span class="c1"># Handle case when the variable could be a string like &quot;1,4,5,6&quot; instead of &quot;bio1&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">bio_num_str</span> <span class="o">=</span> <span class="n">processed_var</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;bio&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="c1"># Check if it&#39;s a comma-separated list</span>
+                    <span class="k">if</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">bio_num_str</span><span class="p">:</span>
+                        <span class="c1"># Just take the first value if it&#39;s a comma-separated list</span>
+                        <span class="n">bio_num_str</span> <span class="o">=</span> <span class="n">bio_num_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">bio_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bio_num_str</span><span class="p">)</span>
+                    <span class="n">file_path</span> <span class="o">=</span> <span class="n">bio_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;wc2.1_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="si">}</span><span class="s2">_bio_</span><span class="si">{</span><span class="n">bio_num</span><span class="si">}</span><span class="s2">.tif&quot;</span>
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid bio variable format: </span><span class="si">{</span><span class="n">bio_var</span><span class="si">}</span><span class="s2">, processed as </span><span class="si">{</span><span class="n">processed_var</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">bio_var</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">continue</span>
+                
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                        <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
+                            <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sample_gen</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">coords</span><span class="p">))</span>
+                            
+                            <span class="k">if</span> <span class="n">values</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">value</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                                
+                                <span class="c1"># Check for nodata values - convert to None (NaN)</span>
+                                <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">nodata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">==</span> <span class="n">dataset</span><span class="o">.</span><span class="n">nodata</span><span class="p">:</span>
+                                    <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+                                <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                                    <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="c1"># Apply scaling if needed (WorldClim temperature is in °C * 10)</span>
+                                    <span class="k">if</span> <span class="n">bio_num</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]:</span>  <span class="c1"># Temperature variables</span>
+                                        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="mf">10.0</span>  <span class="c1"># Convert to actual °C</span>
+                                    
+                                    <span class="c1"># Convert numpy types to Python native types</span>
+                                    <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+                            
+                            <span class="n">result</span><span class="p">[</span><span class="n">bio_var</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">result</span><span class="p">[</span><span class="n">bio_var</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                        
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error extracting </span><span class="si">{</span><span class="n">bio_var</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">latitude</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">longitude</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">bio_var</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            
+            <span class="c1"># Cache the result</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+            
+            <span class="k">return</span> <span class="n">result</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error processing coordinate </span><span class="si">{</span><span class="n">latitude</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">longitude</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Return error result with None values</span>
+            <span class="n">error_result</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="n">latitude</span><span class="p">,</span>
+                <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="n">longitude</span><span class="p">,</span>
+                <span class="s2">&quot;extraction_error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="s2">&quot;extraction_date&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+                <span class="s2">&quot;data_source&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;WorldClim_v2.1_error_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;extraction_note&quot;</span><span class="p">:</span> <span class="s2">&quot;WorldClim values unavailable (error)&quot;</span>
+            <span class="p">}</span>
+            
+            <span class="k">for</span> <span class="n">bio_var</span> <span class="ow">in</span> <span class="n">bio_variables</span><span class="p">:</span>
+                <span class="n">error_result</span><span class="p">[</span><span class="n">bio_var</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            
+            <span class="k">return</span> <span class="n">error_result</span></div>
+
+    
+<div class="viewcode-block" id="WorldClimExtractor.extract_climate_batch">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.WorldClimExtractor.extract_climate_batch">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_climate_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> 
+                                  <span class="n">bio_variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract climate data for multiple coordinates efficiently.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            coordinates: List of (latitude, longitude) tuples</span>
+<span class="sd">            bio_variables: List of bioclimate variables to extract</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List of climate data dictionaries</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracting climate data for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span><span class="si">}</span><span class="s2"> coordinates&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Handle case when bio_variables is a comma-separated string</span>
+        <span class="k">if</span> <span class="n">bio_variables</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bio_variables</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">bio_variables</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;bio</span><span class="si">{</span><span class="n">var</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">bio_variables</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+        
+        <span class="k">if</span> <span class="n">bio_variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bio_variables</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bio1&quot;</span><span class="p">,</span> <span class="s2">&quot;bio4&quot;</span><span class="p">,</span> <span class="s2">&quot;bio5&quot;</span><span class="p">,</span> <span class="s2">&quot;bio6&quot;</span><span class="p">,</span> <span class="s2">&quot;bio12&quot;</span><span class="p">,</span> <span class="s2">&quot;bio13&quot;</span><span class="p">,</span> <span class="s2">&quot;bio14&quot;</span><span class="p">,</span> <span class="s2">&quot;bio15&quot;</span><span class="p">]</span>
+        
+        <span class="c1"># Process coordinates in parallel</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extract_climate_data</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">bio_variables</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="ow">in</span> <span class="n">coordinates</span>
+        <span class="p">]</span>
+        
+        <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># Handle any exceptions</span>
+        <span class="n">processed_results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+                <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error processing coordinate </span><span class="si">{</span><span class="n">lat</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">lon</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">error_result</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span>
+                    <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="n">lon</span><span class="p">,</span>
+                    <span class="s2">&quot;extraction_error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">),</span>
+                    <span class="s2">&quot;extraction_date&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+                    <span class="s2">&quot;data_source&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;WorldClim_v2.1_error_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">resolution</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">}</span>
+                <span class="k">for</span> <span class="n">bio_var</span> <span class="ow">in</span> <span class="n">bio_variables</span><span class="p">:</span>
+                    <span class="n">error_result</span><span class="p">[</span><span class="n">bio_var</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">processed_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_result</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">processed_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">processed_results</span></div>
+</div>
+
+
+
+<span class="c1"># Singleton instance for global use</span>
+<span class="n">_worldclim_extractor</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="get_worldclim_extractor">
+<a class="viewcode-back" href="../../../api_reference.html#app.services.worldclim_extractor.get_worldclim_extractor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_worldclim_extractor</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">WorldClimExtractor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get or create the global WorldClim extractor instance.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_worldclim_extractor</span>
+    <span class="k">if</span> <span class="n">_worldclim_extractor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_worldclim_extractor</span> <span class="o">=</span> <span class="n">WorldClimExtractor</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_worldclim_extractor</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Martinus Christoffel Wolmarans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,413 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Guide &mdash; PRJ381 Data Preprocessing API 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api_reference.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PRJ381 Data Preprocessing API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setup-steps">Setup Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-pipeline-workflow">ML Pipeline Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-system-health-check">Step 1: System Health Check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-collect-species-data">Step 2: Collect Species Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-download-environmental-data">Step 3: Download Environmental Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-4-generate-ml-ready-datasets">Step 4: Generate ML-Ready Datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-5-generate-predictions">Step 5: Generate Predictions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-sources">Data sources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-usage-examples">Basic Usage Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#invasion-risk-heatmap-interactive">Invasion Risk Heatmap (Interactive)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-generate">How to Generate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#interactive-ui-features">Interactive UI Features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-files-required">Data Files Required</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-issues">Common Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-tips">Performance Tips</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PRJ381 Data Preprocessing API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">User Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/user_guide.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="user-guide">
+<h1>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading"></a></h1>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Python 3.12 or higher</p></li>
+<li><p>Internet connection for Open-Topo-Data API access</p></li>
+<li><p>At least 500MB free disk space for WorldClim data</p></li>
+<li><p>WorldClim v2.1 GeoTIFF files (bio variables 1, 4-6, 12-15)</p></li>
+</ul>
+</section>
+<section id="setup-steps">
+<h3>Setup Steps<a class="headerlink" href="#setup-steps" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p><strong>Clone the Repository</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">Mc141</span><span class="o">/</span><span class="n">PRJ381</span><span class="o">-</span><span class="n">data</span><span class="o">-</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">PRJ381</span><span class="o">-</span><span class="n">data</span><span class="o">-</span><span class="n">preprocessing</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Install Dependencies</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Download WorldClim Data</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download from: https://worldclim.org/data/worldclim21.html</span>
+<span class="c1"># Place files in: data/worldclim/</span>
+<span class="c1"># Required: wc2.1_10m_bio_1.tif, bio_4.tif, bio_5.tif, bio_6.tif,</span>
+<span class="c1">#           bio_12.tif, bio_13.tif, bio_14.tif, bio_15.tif</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Run the Application</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uvicorn</span> <span class="n">app</span><span class="o">.</span><span class="n">main</span><span class="p">:</span><span class="n">app</span> <span class="o">--</span><span class="n">reload</span> <span class="o">--</span><span class="n">port</span> <span class="mi">8000</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Access Documentation</strong>:</p>
+<ul class="simple">
+<li><p>Swagger UI: <a class="reference external" href="http://localhost:8000/docs">http://localhost:8000/docs</a></p></li>
+<li><p>ReDoc: <a class="reference external" href="http://localhost:8000/redoc">http://localhost:8000/redoc</a></p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="ml-pipeline-workflow">
+<h2>ML Pipeline Workflow<a class="headerlink" href="#ml-pipeline-workflow" title="Link to this heading"></a></h2>
+<p>The API follows a structured workflow for creating machine learning datasets:</p>
+<section id="step-1-system-health-check">
+<h3>Step 1: System Health Check<a class="headerlink" href="#step-1-system-health-check" title="Link to this heading"></a></h3>
+<p>Verify system status and dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">status</span><span class="o">/</span><span class="n">health</span>
+</pre></div>
+</div>
+</section>
+<section id="step-2-collect-species-data">
+<h3>Step 2: Collect Species Data<a class="headerlink" href="#step-2-collect-species-data" title="Link to this heading"></a></h3>
+<p>Fetch global species occurrence data from GBIF:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>GET /api/v1/gbif/occurrences?store_in_db=true&amp;max_results=2000
+</pre></div>
+</div>
+<p>This collects ~1,700+ global occurrence records for training.</p>
+</section>
+<section id="step-3-download-environmental-data">
+<h3>Step 3: Download Environmental Data<a class="headerlink" href="#step-3-download-environmental-data" title="Link to this heading"></a></h3>
+<p>Download WorldClim v2.1 climate data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">worldclim</span><span class="o">/</span><span class="n">ensure</span><span class="o">-</span><span class="n">data</span>
+</pre></div>
+</div>
+<p>Downloads ~900MB of real bioclimate data to your local system.</p>
+</section>
+<section id="step-4-generate-ml-ready-datasets">
+<h3>Step 4: Generate ML-Ready Datasets<a class="headerlink" href="#step-4-generate-ml-ready-datasets" title="Link to this heading"></a></h3>
+<p>Generate training and validation CSV files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">generate</span><span class="o">-</span><span class="n">ml</span><span class="o">-</span><span class="n">ready</span>
+<span class="n">Body</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;max_global&quot;</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span> <span class="s2">&quot;max_local&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Creates enriched datasets with 13 features (location, climate, temporal, elevation).</p>
+</section>
+<section id="step-5-generate-predictions">
+<h3>Step 5: Generate Predictions<a class="headerlink" href="#step-5-generate-predictions" title="Link to this heading"></a></h3>
+<p>Use trained XGBoost model for invasion risk mapping:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>GET /api/v1/predictions/heatmap?model_name=xgboost
+</pre></div>
+</div>
+<p>Generates probability heatmap for invasion risk assessment.</p>
+</section>
+</section>
+<section id="data-sources">
+<h2>Data sources<a class="headerlink" href="#data-sources" title="Link to this heading"></a></h2>
+<p>This project uses WorldClim v2.1 climate data, SRTM elevation via Open-Topo-Data, and GBIF occurrence records. See the Architecture and Overview sections for details.</p>
+<section id="basic-usage-examples">
+<h3>Basic Usage Examples<a class="headerlink" href="#basic-usage-examples" title="Link to this heading"></a></h3>
+<p>Check system status:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">status</span><span class="o">/</span><span class="n">health</span>
+<span class="n">GET</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">status</span><span class="o">/</span><span class="n">service</span><span class="o">-</span><span class="n">info</span>
+</pre></div>
+</div>
+<p>Extract environmental data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">environmental</span><span class="o">/</span><span class="n">extract</span><span class="o">-</span><span class="n">batch</span>
+<span class="n">Body</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">33.925</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="mf">18.424</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">34.056</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="mf">18.472</span><span class="p">}</span>
+<span class="p">]}</span>
+</pre></div>
+</div>
+<p>Generate datasets:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">generate</span><span class="o">-</span><span class="n">ml</span><span class="o">-</span><span class="n">ready</span>
+<span class="n">Body</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;max_global&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;max_local&quot;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span> <span class="s2">&quot;verbose&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Generate prediction heatmap:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GET</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">export</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="invasion-risk-heatmap-interactive">
+<h2>Invasion Risk Heatmap (Interactive)<a class="headerlink" href="#invasion-risk-heatmap-interactive" title="Link to this heading"></a></h2>
+<p>The project includes an interactive, grid-based invasion risk heatmap powered by the XGBoost model and real environmental data (WorldClim v2.1 + SRTM elevation).</p>
+<section id="how-to-generate">
+<h3>How to Generate<a class="headerlink" href="#how-to-generate" title="Link to this heading"></a></h3>
+<p>From the project root, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">models</span><span class="o">.</span><span class="n">xgboost</span><span class="o">.</span><span class="n">generate_heatmap_api</span> <span class="o">--</span><span class="n">grid_size</span> <span class="mi">20</span> <span class="o">--</span><span class="n">month</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p>Options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--grid_size</span></code>: Number of grid points per dimension (higher = more detail)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--month</span></code>: Month of year (1-12) for seasonality features</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--western_cape_extended</span></code> or <code class="docutils literal notranslate"><span class="pre">--specific_area</span></code> with <code class="docutils literal notranslate"><span class="pre">lat/lon</span></code> bounds</p></li>
+</ul>
+</section>
+<section id="interactive-ui-features">
+<h3>Interactive UI Features<a class="headerlink" href="#interactive-ui-features" title="Link to this heading"></a></h3>
+<p>Hover Tooltip:</p>
+<ul class="simple">
+<li><p>Category (Very Low → Critical)</p></li>
+<li><p>Probability (%)</p></li>
+<li><p>Latitude / Longitude</p></li>
+</ul>
+<p>Click Popup (per grid cell):</p>
+<ul class="simple">
+<li><p>Risk level and probability</p></li>
+<li><p>Assessment text explaining the risk category</p></li>
+<li><p>Exact coordinates</p></li>
+<li><p>🗺️ “Navigate with Google Maps” button that opens directions to the cell location</p></li>
+</ul>
+<p>Risk Hotspots:</p>
+<ul class="simple">
+<li><p>Top 5 highest-risk points marked with color-coded markers</p></li>
+<li><p>Popup includes rank, risk %, and coordinates</p></li>
+</ul>
+<p>Information Panels:</p>
+<ul class="simple">
+<li><p>Top Center: Title with species, month, data sources (WorldClim + SRTM)</p></li>
+<li><p>Top Right: Risk Category Guide with management suggestions</p></li>
+<li><p>Bottom Left: Statistics (distribution by category, mean/max/min, median, std)</p></li>
+<li><p>Bottom Right: Data Sources &amp; Methodology (provenance and disclaimer)</p></li>
+</ul>
+<p>Legend:</p>
+<ul class="simple">
+<li><p>Continuous color scale (0% → 100%)</p></li>
+<li><p>Cyan/Green for low risk → Yellow/Orange → Red for high to critical risk</p></li>
+</ul>
+<p>Layers:</p>
+<ul class="simple">
+<li><p>Invasion Risk Grid (default)</p></li>
+<li><p>Satellite base layer</p></li>
+<li><p>Risk Hotspots (Top 5)</p></li>
+</ul>
+<p>Notes:</p>
+<ul class="simple">
+<li><p>Popups open on click; hover displays tooltips</p></li>
+<li><p>Environmental values are pulled from the listed sources; some grid cells may have missing data</p></li>
+<li><p>Use a larger <code class="docutils literal notranslate"><span class="pre">--grid_size</span></code> for publication-quality maps (longer runtime)</p></li>
+</ul>
+</section>
+</section>
+<section id="advanced-usage">
+<h2>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h2>
+<section id="batch-processing">
+<h3>Batch Processing<a class="headerlink" href="#batch-processing" title="Link to this heading"></a></h3>
+<p>For large datasets, use the async processing capabilities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Process multiple years of data
+GET /api/v1/datasets/merge?start_year=2020&amp;start_month=1&amp;start_day=1&amp;end_year=2024&amp;end_month=12&amp;end_day=31&amp;years_back=10
+
+GET /api/v1/predictions/heatmap?model_name=xgboost
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<section id="environment-variables">
+<h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h3>
+<p>The application supports the following environment variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LOG_LEVEL</span></code>: Logging level (default: INFO)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">API_TIMEOUT</span></code>: API request timeout in seconds (default: 30)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WORLDCLIM_PATH</span></code>: Path to WorldClim GeoTIFF files (default: data/worldclim/)</p></li>
+</ul>
+</section>
+<section id="data-files-required">
+<h3>Data Files Required<a class="headerlink" href="#data-files-required" title="Link to this heading"></a></h3>
+<p>WorldClim v2.1 GeoTIFF files needed in <code class="docutils literal notranslate"><span class="pre">data/worldclim/</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">wc2.1_10m_bio_1.tif</span></code>: Annual mean temperature</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wc2.1_10m_bio_4.tif</span></code>: Temperature seasonality</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wc2.1_10m_bio_5.tif</span></code>: Max temperature of warmest month</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wc2.1_10m_bio_6.tif</span></code>: Min temperature of coldest month</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wc2.1_10m_bio_12.tif</span></code>: Annual precipitation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wc2.1_10m_bio_13.tif</span></code>: Precipitation of wettest month</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wc2.1_10m_bio_14.tif</span></code>: Precipitation of driest month</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wc2.1_10m_bio_15.tif</span></code>: Precipitation seasonality</p></li>
+</ul>
+</section>
+</section>
+<section id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h2>
+<p>The API provides comprehensive error handling:</p>
+<ul class="simple">
+<li><p><strong>400 Bad Request</strong>: Invalid parameters or coordinates</p></li>
+<li><p><strong>404 Not Found</strong>: No data found or missing WorldClim files</p></li>
+<li><p><strong>500 Internal Server Error</strong>: GeoTIFF extraction or API communication errors</p></li>
+</ul>
+<section id="common-issues">
+<h3>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading"></a></h3>
+<p><strong>WorldClim File Missing</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check if files exist</span>
+<span class="n">ls</span> <span class="o">-</span><span class="n">lh</span> <span class="n">data</span><span class="o">/</span><span class="n">worldclim</span><span class="o">/*.</span><span class="n">tif</span>
+
+<span class="c1"># Verify file permissions</span>
+<span class="n">chmod</span> <span class="mi">644</span> <span class="n">data</span><span class="o">/</span><span class="n">worldclim</span><span class="o">/*.</span><span class="n">tif</span>
+</pre></div>
+</div>
+<p><strong>API Timeout Issues</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Open-Topo-Data has 1-second rate limit</span>
+<span class="c1"># Use batch processing with delays</span>
+<span class="c1"># Check internet connection</span>
+</pre></div>
+</div>
+<p><strong>Memory Issues</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process smaller batches</span>
+<span class="c1"># Increase system memory</span>
+<span class="c1"># Use streaming for large coordinate lists</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-tips">
+<h2>Performance Tips<a class="headerlink" href="#performance-tips" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Use batch processing for multiple coordinates (100 at a time)</p></li>
+<li><p>Respect Open-Topo-Data rate limits (1-second delays)</p></li>
+<li><p>Cache extracted environmental data</p></li>
+<li><p>Monitor disk space for WorldClim files (~500MB total)</p></li>
+<li><p>Use smaller sample datasets during development</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api_reference.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Martinus Christoffel Wolmarans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

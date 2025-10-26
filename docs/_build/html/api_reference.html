@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; PRJ381 Data Preprocessing API 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Architecture" href="architecture.html" />
+    <link rel="prev" title="User Guide" href="user_guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PRJ381 Data Preprocessing API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#interactive-api-documentation">Interactive API Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.main">Main Application</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#prj381-species-distribution-modeling-api">PRJ381 Species Distribution Modeling API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#routers">Routers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#status-router">Status Router</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.routers.status.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#environmental-router">Environmental Router</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#environmental-data-router">Environmental Data Router</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.routers.environmental.CoordinateListRequest"><code class="docutils literal notranslate"><span class="pre">CoordinateListRequest</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.routers.environmental.CoordinatePoint"><code class="docutils literal notranslate"><span class="pre">CoordinatePoint</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.routers.environmental.extract_environmental_batch"><code class="docutils literal notranslate"><span class="pre">extract_environmental_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#datasets-router">Datasets Router</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.routers.datasets.generate_ml_ready_files"><code class="docutils literal notranslate"><span class="pre">generate_ml_ready_files()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#predictions-router">Predictions Router</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.routers.predictions.generate_xgboost_heatmap"><code class="docutils literal notranslate"><span class="pre">generate_xgboost_heatmap()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.routers.predictions.train_xgboost_model_endpoint"><code class="docutils literal notranslate"><span class="pre">train_xgboost_model_endpoint()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#services">Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gbif-fetcher">GBIF Fetcher</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.gbif_fetcher.GBIFError"><code class="docutils literal notranslate"><span class="pre">GBIFError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.gbif_fetcher.GBIFFetcher"><code class="docutils literal notranslate"><span class="pre">GBIFFetcher</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#worldclim-extractor">WorldClim Extractor</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.worldclim_extractor.WorldClimDataError"><code class="docutils literal notranslate"><span class="pre">WorldClimDataError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.worldclim_extractor.WorldClimExtractor"><code class="docutils literal notranslate"><span class="pre">WorldClimExtractor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.worldclim_extractor.get_worldclim_extractor"><code class="docutils literal notranslate"><span class="pre">get_worldclim_extractor()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#elevation-extractor">Elevation Extractor</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.elevation_extractor.ElevationDataError"><code class="docutils literal notranslate"><span class="pre">ElevationDataError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.elevation_extractor.ElevationExtractor"><code class="docutils literal notranslate"><span class="pre">ElevationExtractor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ml-dataset-generator">ML Dataset Generator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.generate_ml_ready_datasets.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.generate_ml_ready_datasets.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#app.services.generate_ml_ready_datasets.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PRJ381 Data Preprocessing API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api_reference.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<p>This section provides comprehensive documentation for all API modules, automatically generated from the source code docstrings.</p>
+<section id="interactive-api-documentation">
+<h2>Interactive API Documentation<a class="headerlink" href="#interactive-api-documentation" title="Link to this heading"></a></h2>
+<p>For interactive exploration of the API endpoints, use the automatically generated documentation:</p>
+<ul class="simple">
+<li><p><strong>Swagger UI</strong>: <a class="extlink-swagger reference external" href="http://localhost:8000/docsdocs">/</a> - Interactive API documentation with request/response examples</p></li>
+<li><p><strong>ReDoc</strong>: <a class="extlink-redoc reference external" href="http://localhost:8000/redocredoc">/</a> - Clean, responsive API documentation</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The interactive documentation is automatically generated from the FastAPI application and is always up-to-date with the current API implementation.</p>
+</div>
+</section>
+<section id="module-app.main">
+<span id="main-application"></span><h2>Main Application<a class="headerlink" href="#module-app.main" title="Link to this heading"></a></h2>
+<section id="prj381-species-distribution-modeling-api">
+<h3>PRJ381 Species Distribution Modeling API<a class="headerlink" href="#prj381-species-distribution-modeling-api" title="Link to this heading"></a></h3>
+<p>This FastAPI application provides a robust platform for creating machine learning datasets from global biodiversity observations, enriched with authentic environmental data for species distribution modeling and invasion risk assessment.</p>
+<dl class="simple">
+<dt>Current Workflow:</dt><dd><ol class="arabic simple">
+<li><p>Data Collection: Fetch global species occurrences from GBIF</p></li>
+<li><p>Environmental Enrichment: Add WorldClim climate &amp; SRTM elevation data</p></li>
+<li><p>Dataset Creation: Build ML-ready datasets for transfer learning (direct CSV export)</p></li>
+<li><p>Model Training: Export data for XGBoost model training (external)</p></li>
+<li><p>Prediction &amp; Mapping: Generate invasion risk predictions and visualizations (API endpoints)</p></li>
+</ol>
+</dd>
+<dt>API Organization:</dt><dd><ul class="simple">
+<li><p>Core Pipeline: Status → Environmental → Datasets → Predictions</p></li>
+<li><p>Data Management: Status monitoring, data validation</p></li>
+</ul>
+</dd>
+<dt>Dependencies Flow:</dt><dd><p>/status → /environmental → /datasets → /predictions</p>
+</dd>
+</dl>
+<p>Author: MC141
+Project: PRJ381 - Invasive Species Distribution Modeling</p>
+</section>
+</section>
+<section id="routers">
+<h2>Routers<a class="headerlink" href="#routers" title="Link to this heading"></a></h2>
+<section id="status-router">
+<h3>Status Router<a class="headerlink" href="#status-router" title="Link to this heading"></a></h3>
+<p>System health monitoring and pipeline validation.</p>
+<p id="module-app.routers.status">Status Router for Health Checks and System Information</p>
+<p>This module provides API endpoints for monitoring the health and operational status
+of the data preprocessing service. Endpoints are designed for system monitoring,
+deployment validation, and service readiness checks.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.routers.status.health_check">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.routers.status.</span></span><span class="sig-name descname"><span class="pre">health_check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/routers/status.html#health_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.status.health_check" title="Link to this definition"></a></dt>
+<dd><p>Perform a comprehensive health check of the API service.</p>
+<p>This endpoint verifies the operational status of the API and its dependencies, including:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>API responsiveness (FastAPI)</p></li>
+<li><p>Required external services (GBIF, WorldClim)</p></li>
+<li><p>Storage space for data downloads</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Health status information with the current timestamp.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="environmental-router">
+<h3>Environmental Router<a class="headerlink" href="#environmental-router" title="Link to this heading"></a></h3>
+<p>WorldClim and SRTM elevation data extraction for environmental enrichment.</p>
+<section id="environmental-data-router">
+<span id="module-app.routers.environmental"></span><h4>Environmental Data Router<a class="headerlink" href="#environmental-data-router" title="Link to this heading"></a></h4>
+<p>API endpoints for retrieving combined environmental data (climate and elevation)
+for specific coordinates. Provides a unified interface to obtain all environmental
+variables required for modeling in a single API call.</p>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="app.routers.environmental.CoordinateListRequest">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.routers.environmental.</span></span><span class="sig-name descname"><span class="pre">CoordinateListRequest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/routers/environmental.html#CoordinateListRequest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.environmental.CoordinateListRequest" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel" title="(in Pydantic Validation v0.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.routers.environmental.CoordinateListRequest.coordinates">
+<span class="sig-name descname"><span class="pre">coordinates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a><span class="pre">[</span><a class="reference internal" href="#app.routers.environmental.CoordinatePoint" title="app.routers.environmental.CoordinatePoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoordinatePoint</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#app.routers.environmental.CoordinateListRequest.coordinates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.routers.environmental.CoordinateListRequest.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#app.routers.environmental.CoordinateListRequest.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="app.routers.environmental.CoordinatePoint">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.routers.environmental.</span></span><span class="sig-name descname"><span class="pre">CoordinatePoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/routers/environmental.html#CoordinatePoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.environmental.CoordinatePoint" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel" title="(in Pydantic Validation v0.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.routers.environmental.CoordinatePoint.latitude">
+<span class="sig-name descname"><span class="pre">latitude</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#app.routers.environmental.CoordinatePoint.latitude" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.routers.environmental.CoordinatePoint.longitude">
+<span class="sig-name descname"><span class="pre">longitude</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#app.routers.environmental.CoordinatePoint.longitude" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.routers.environmental.CoordinatePoint.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#app.routers.environmental.CoordinatePoint.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.routers.environmental.extract_environmental_batch">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.routers.environmental.</span></span><span class="sig-name descname"><span class="pre">extract_environmental_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/routers/environmental.html#extract_environmental_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.environmental.extract_environmental_batch" title="Link to this definition"></a></dt>
+<dd><p>Extract combined climate and elevation data for multiple coordinates.</p>
+<dl class="simple">
+<dt>The request body should contain a list of coordinates as:</dt><dd><p>{“coordinates”: [{“latitude”: -33.925, “longitude”: 18.424}, …]}</p>
+</dd>
+</dl>
+<p>Returns a dictionary with request metadata and a list of results for each coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#app.routers.environmental.CoordinateListRequest" title="app.routers.environmental.CoordinateListRequest"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoordinateListRequest</span></code></a></span>)</p></li>
+<li><p><strong>variables</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="datasets-router">
+<h3>Datasets Router<a class="headerlink" href="#datasets-router" title="Link to this heading"></a></h3>
+<p>ML dataset creation, enrichment, and export functionality.</p>
+<dl class="py function" id="module-app.routers.datasets">
+<dt class="sig sig-object py" id="app.routers.datasets.generate_ml_ready_files">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.routers.datasets.</span></span><span class="sig-name descname"><span class="pre">generate_ml_ready_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_global</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_local</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(100)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(False)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/routers/datasets.html#generate_ml_ready_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.datasets.generate_ml_ready_files" title="Link to this definition"></a></dt>
+<dd><p>Generate machine learning-ready datasets and write them to canonical CSV files.</p>
+<p>This endpoint runs the internal dataset generator, producing standardized CSV files for model training and validation. Existing files will be overwritten.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_global</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>) – Limit the number of global records (omit for all).</p></li>
+<li><p><strong>max_local</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>) – Limit the number of local South African records (omit for all).</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Batch size for environmental data extraction.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Enable verbose logging for detailed output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Status, written file paths, and a success message.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="predictions-router">
+<h3>Predictions Router<a class="headerlink" href="#predictions-router" title="Link to this heading"></a></h3>
+<p>Invasion risk prediction and mapping visualization using XGBoost.</p>
+<p id="module-app.routers.predictions">Prediction Router for Invasive Species Spread Modeling</p>
+<p>This module provides API endpoints and utilities for ecological niche modeling of
+Pyracantha angustifolia. It leverages recent observations and environmental suitability
+scoring to support global risk assessment, heatmap generation, and model training.
+Endpoints include risk heatmap generation, model training, and core functions for suitability scoring and grid generation.
+All documentation and comments are aligned with the current service and written in a clear, professional style.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.routers.predictions.generate_xgboost_heatmap">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.routers.predictions.</span></span><span class="sig-name descname"><span class="pre">generate_xgboost_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(western_cape)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">month</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(3)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">download</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(False)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/routers/predictions.html#generate_xgboost_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.predictions.generate_xgboost_heatmap" title="Link to this definition"></a></dt>
+<dd><p>Generate a high-resolution invasion risk heatmap using the trained XGBoost model and real-time environmental data.</p>
+<p>This endpoint runs the heatmap generation script and returns the resulting HTML map. It uses the XGBoost model and up-to-date environmental data.</p>
+<dl class="simple">
+<dt>Geographic Regions:</dt><dd><ul class="simple">
+<li><p>western_cape: Cape Town metropolitan area (default, -34.2 to -33.8°S, 18.2 to 19.0°E)</p></li>
+<li><p>custom: User-specified bounds (requires lat_min, lat_max, lon_min, lon_max)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>HTML file response for direct download
+- Otherwise: JSON with HTML content (if return_html=True), generation statistics, and optional file save location (if save_file=True)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>If download=True</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>region</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>)</p></li>
+<li><p><strong>lat_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span>)</p></li>
+<li><p><strong>lat_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span>)</p></li>
+<li><p><strong>lon_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span>)</p></li>
+<li><p><strong>lon_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span>)</p></li>
+<li><p><strong>grid_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>)</p></li>
+<li><p><strong>month</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>)</p></li>
+<li><p><strong>download</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.routers.predictions.train_xgboost_model_endpoint">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.routers.predictions.</span></span><span class="sig-name descname"><span class="pre">train_xgboost_model_endpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_artifacts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Query(0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/routers/predictions.html#train_xgboost_model_endpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.routers.predictions.train_xgboost_model_endpoint" title="Link to this definition"></a></dt>
+<dd><p>Train the XGBoost model using the standardized pipeline and return training results.</p>
+<p>This endpoint imports and executes the training script in models/xgboost/train_model_api.py,
+running the full pipeline: data loading, model training (with GridSearchCV), evaluation, and artifact saving.
+Key metrics and artifact locations are returned in the response.</p>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Training may take several minutes depending on data size and environment.</p></li>
+<li><p>Use limit_rows to subsample data for a faster, approximate run.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_artifacts</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>)</p></li>
+<li><p><strong>return_metrics</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>)</p></li>
+<li><p><strong>limit_rows</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="services">
+<h2>Services<a class="headerlink" href="#services" title="Link to this heading"></a></h2>
+<section id="gbif-fetcher">
+<h3>GBIF Fetcher<a class="headerlink" href="#gbif-fetcher" title="Link to this heading"></a></h3>
+<p>GBIF API integration service for species occurrence data.</p>
+<p id="module-app.services.gbif_fetcher">GBIF Data Fetcher Service</p>
+<p>Asynchronous service for fetching global occurrence data from GBIF API with
+quality filtering, pagination, and error handling.</p>
+<p>GBIF API: <a class="reference external" href="https://www.gbif.org/developer/occurrence">https://www.gbif.org/developer/occurrence</a></p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.services.gbif_fetcher.</span></span><span class="sig-name descname"><span class="pre">GBIFError</span></span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Custom exception for GBIF API errors.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFFetcher">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.services.gbif_fetcher.</span></span><span class="sig-name descname"><span class="pre">GBIFFetcher</span></span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFFetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFFetcher" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Asynchronous GBIF occurrence data fetcher with comprehensive error handling.</p>
+<p>Supports:
+- Global species occurrence retrieval
+- Quality filtering (coordinate accuracy, date validation)
+- Batch processing for large datasets
+- Rate limiting and retry logic
+- Progress tracking for large downloads</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFFetcher.__aenter__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__aenter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFFetcher.__aenter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFFetcher.__aenter__" title="Link to this definition"></a></dt>
+<dd><p>Async context manager entry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFFetcher.__aexit__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__aexit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_tb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFFetcher.__aexit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFFetcher.__aexit__" title="Link to this definition"></a></dt>
+<dd><p>Async context manager exit.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFFetcher.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFFetcher.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFFetcher.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFFetcher.fetch_all_occurrences">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fetch_all_occurrences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scientific_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality_filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_from</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_uncertainty_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_records</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFFetcher.fetch_all_occurrences"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFFetcher.fetch_all_occurrences" title="Link to this definition"></a></dt>
+<dd><p>Fetch all occurrences for a species with comprehensive filtering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scientific_name</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Scientific name of species</p></li>
+<li><p><strong>quality_filters</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Apply quality filters (coordinates, dates, etc.)</p></li>
+<li><p><strong>date_from</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Start date (YYYY-MM-DD)</p></li>
+<li><p><strong>date_to</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – End date (YYYY-MM-DD)</p></li>
+<li><p><strong>country</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – ISO country code (e.g., ‘ZA’ for South Africa)</p></li>
+<li><p><strong>coordinate_uncertainty_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>) – Max coordinate uncertainty in meters</p></li>
+<li><p><strong>batch_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Records per API request (max 300)</p></li>
+<li><p><strong>max_records</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>) – Maximum total records to fetch</p></li>
+<li><p><strong>progress_callback</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>]</span>) – Function to call with progress updates</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of occurrence records</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFFetcher.fetch_occurrences_batch">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fetch_occurrences_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">filters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFFetcher.fetch_occurrences_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFFetcher.fetch_occurrences_batch" title="Link to this definition"></a></dt>
+<dd><p>Fetch a batch of occurrences with retry logic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species_key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – GBIF species key</p></li>
+<li><p><strong>offset</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Record offset for pagination</p></li>
+<li><p><strong>limit</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of records per batch (max 300)</p></li>
+<li><p><strong>**filters</strong> – Additional filter parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>GBIF API response data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFFetcher.get_occurrence_count">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_occurrence_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">filters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFFetcher.get_occurrence_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFFetcher.get_occurrence_count" title="Link to this definition"></a></dt>
+<dd><p>Get total occurrence count for species with filters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species_key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – GBIF species key</p></li>
+<li><p><strong>**filters</strong> – Additional filter parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Total occurrence count</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.gbif_fetcher.GBIFFetcher.get_species_key">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_species_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scientific_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/gbif_fetcher.html#GBIFFetcher.get_species_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.gbif_fetcher.GBIFFetcher.get_species_key" title="Link to this definition"></a></dt>
+<dd><p>Get GBIF species key for scientific name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scientific_name</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Scientific name with authority (e.g., “Pyracantha angustifolia (Franch.) C.K.Schneid.”)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Species key (taxon ID) or None if not found</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="worldclim-extractor">
+<h3>WorldClim Extractor<a class="headerlink" href="#worldclim-extractor" title="Link to this heading"></a></h3>
+<p>WorldClim v2.1 bioclimate variable extraction from GeoTIFF files.</p>
+<p id="module-app.services.worldclim_extractor">WorldClim Data Extractor</p>
+<p>Extracts WorldClim v2.1 bioclimate data from GeoTIFF rasters with batch processing
+and caching. Returns None when data are unavailable.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimDataError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.services.worldclim_extractor.</span></span><span class="sig-name descname"><span class="pre">WorldClimDataError</span></span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimDataError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimDataError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Custom exception for WorldClim data errors.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimExtractor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.services.worldclim_extractor.</span></span><span class="sig-name descname"><span class="pre">WorldClimExtractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'10m'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimExtractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimExtractor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>WorldClim data extractor for local raster files.</p>
+<p>Extracts WorldClim v2.1 bioclimate data from local GeoTIFF files with
+caching and batch processing support.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dir</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>]</span>)</p></li>
+<li><p><strong>resolution</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimExtractor.__aenter__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__aenter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimExtractor.__aenter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimExtractor.__aenter__" title="Link to this definition"></a></dt>
+<dd><p>Async context manager entry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimExtractor.__aexit__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__aexit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_tb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimExtractor.__aexit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimExtractor.__aexit__" title="Link to this definition"></a></dt>
+<dd><p>Async context manager exit.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimExtractor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'10m'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimExtractor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimExtractor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the WorldClim data extractor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_dir</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>]</span>) – Directory to store downloaded WorldClim files</p></li>
+<li><p><strong>resolution</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – WorldClim resolution (“10m”, “5m”, “2.5m”, “30s”)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimExtractor.check_files_exist">
+<span class="sig-name descname"><span class="pre">check_files_exist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimExtractor.check_files_exist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimExtractor.check_files_exist" title="Link to this definition"></a></dt>
+<dd><p>Check if all required WorldClim files exist in the data directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimExtractor.extract_climate_batch">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">extract_climate_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bio_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimExtractor.extract_climate_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimExtractor.extract_climate_batch" title="Link to this definition"></a></dt>
+<dd><p>Extract climate data for multiple coordinates efficiently.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span>) – List of (latitude, longitude) tuples</p></li>
+<li><p><strong>bio_variables</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>) – List of bioclimate variables to extract</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of climate data dictionaries</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimExtractor.extract_climate_data">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">extract_climate_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bio_variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimExtractor.extract_climate_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimExtractor.extract_climate_data" title="Link to this definition"></a></dt>
+<dd><p>Extract real climate data for a single coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latitude</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Latitude in decimal degrees</p></li>
+<li><p><strong>longitude</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Longitude in decimal degrees</p></li>
+<li><p><strong>bio_variables</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>) – List of bioclimate variables (e.g., [“bio1”, “bio12”])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with extracted climate data or None values if unavailable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.WorldClimExtractor.get_bio_dir">
+<span class="sig-name descname"><span class="pre">get_bio_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#WorldClimExtractor.get_bio_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.WorldClimExtractor.get_bio_dir" title="Link to this definition"></a></dt>
+<dd><p>Get the directory path for WorldClim bio files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Directory containing WorldClim bioclimate files</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.services.worldclim_extractor.get_worldclim_extractor">
+<span class="sig-prename descclassname"><span class="pre">app.services.worldclim_extractor.</span></span><span class="sig-name descname"><span class="pre">get_worldclim_extractor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/worldclim_extractor.html#get_worldclim_extractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.worldclim_extractor.get_worldclim_extractor" title="Link to this definition"></a></dt>
+<dd><p>Get or create the global WorldClim extractor instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#app.services.worldclim_extractor.WorldClimExtractor" title="app.services.worldclim_extractor.WorldClimExtractor"><code class="xref py py-class docutils literal notranslate"><span class="pre">WorldClimExtractor</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="elevation-extractor">
+<h3>Elevation Extractor<a class="headerlink" href="#elevation-extractor" title="Link to this heading"></a></h3>
+<p>SRTM 30m elevation data extraction via Open-Topo-Data API.</p>
+<p id="module-app.services.elevation_extractor">Elevation Data Extractor</p>
+<p>Extracts SRTM 30m elevation data via Open-Topo-Data API with batch processing,
+caching, and rate limiting. Returns None when data are unavailable.</p>
+<p>Data Source: NASA SRTM via Open-Topo-Data API (<a class="reference external" href="https://www.opentopodata.org/">https://www.opentopodata.org/</a>)
+Coverage: Global (60°N to 60°S)</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="app.services.elevation_extractor.ElevationDataError">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.services.elevation_extractor.</span></span><span class="sig-name descname"><span class="pre">ElevationDataError</span></span><a class="reference internal" href="_modules/app/services/elevation_extractor.html#ElevationDataError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.elevation_extractor.ElevationDataError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Custom exception for elevation data errors.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="app.services.elevation_extractor.ElevationExtractor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.services.elevation_extractor.</span></span><span class="sig-name descname"><span class="pre">ElevationExtractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://api.opentopodata.org/v1/srtm30m'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/elevation_extractor.html#ElevationExtractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.elevation_extractor.ElevationExtractor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Extract elevation data from SRTM digital elevation models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>base_url</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.elevation_extractor.ElevationExtractor.__aenter__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__aenter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/elevation_extractor.html#ElevationExtractor.__aenter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.elevation_extractor.ElevationExtractor.__aenter__" title="Link to this definition"></a></dt>
+<dd><p>Async context manager entry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.elevation_extractor.ElevationExtractor.__aexit__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__aexit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_tb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/elevation_extractor.html#ElevationExtractor.__aexit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.elevation_extractor.ElevationExtractor.__aexit__" title="Link to this definition"></a></dt>
+<dd><p>Async context manager exit.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.elevation_extractor.ElevationExtractor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://api.opentopodata.org/v1/srtm30m'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/elevation_extractor.html#ElevationExtractor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.elevation_extractor.ElevationExtractor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the elevation extractor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>base_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Base URL for the Open-Topo-Data API.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.elevation_extractor.ElevationExtractor.extract_elevation">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">extract_elevation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/elevation_extractor.html#ElevationExtractor.extract_elevation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.elevation_extractor.ElevationExtractor.extract_elevation" title="Link to this definition"></a></dt>
+<dd><p>Extract elevation data for a single coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latitude</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Latitude in decimal degrees</p></li>
+<li><p><strong>longitude</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Longitude in decimal degrees</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing elevation data and metadata</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.services.elevation_extractor.ElevationExtractor.extract_elevation_batch">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">extract_elevation_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/elevation_extractor.html#ElevationExtractor.extract_elevation_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.elevation_extractor.ElevationExtractor.extract_elevation_batch" title="Link to this definition"></a></dt>
+<dd><p>Extract elevation data for multiple coordinates in batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span>) – List of (latitude, longitude) tuples</p></li>
+<li><p><strong>batch_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Maximum coordinates per API request</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of elevation results in same order as input coordinates</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="ml-dataset-generator">
+<h3>ML Dataset Generator<a class="headerlink" href="#ml-dataset-generator" title="Link to this heading"></a></h3>
+<p>Generate ML-ready CSV datasets with environmental enrichment.</p>
+<p id="module-app.services.generate_ml_ready_datasets">Generate ML-ready datasets (global_training_ml_ready.csv and local_validation_ml_ready.csv)
+without using the database. This module fetches GBIF occurrences directly, enriches them
+with WorldClim climate variables and SRTM elevation, computes temporal features, and writes
+the standardized 17-feature CSVs into the repository’s <cite>data/</cite> folder (overwriting if they exist).</p>
+<dl class="simple">
+<dt>Usage (from repo root):</dt><dd><p>python -m app.services.generate_ml_ready_datasets     –max-global 2000 –max-local 500 –batch-size 100 –verbose</p>
+</dd>
+</dl>
+<p>Notes:
+- Requires WorldClim GeoTIFFs under data/worldclim/ (must be pre-downloaded)
+- Uses Open-Topo-Data for elevation via the elevation extractor (internet required)</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.services.generate_ml_ready_datasets.main">
+<span class="sig-prename descclassname"><span class="pre">app.services.generate_ml_ready_datasets.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/generate_ml_ready_datasets.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.generate_ml_ready_datasets.main" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.services.generate_ml_ready_datasets.parse_args">
+<span class="sig-prename descclassname"><span class="pre">app.services.generate_ml_ready_datasets.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/generate_ml_ready_datasets.html#parse_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.generate_ml_ready_datasets.parse_args" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Namespace</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.services.generate_ml_ready_datasets.run">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.services.generate_ml_ready_datasets.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_global</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_local</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/app/services/generate_ml_ready_datasets.html#run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.services.generate_ml_ready_datasets.run" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_global</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>)</p></li>
+<li><p><strong>max_local</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>)</p></li>
+<li><p><strong>batch_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>)</p></li>
+<li><p><strong>verbose</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="user_guide.html" class="btn btn-neutral float-left" title="User Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="architecture.html" class="btn btn-neutral float-right" title="Architecture" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Martinus Christoffel Wolmarans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

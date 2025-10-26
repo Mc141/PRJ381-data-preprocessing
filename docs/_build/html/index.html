@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRJ381 Data Preprocessing API Documentation &mdash; PRJ381 Data Preprocessing API 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            PRJ381 Data Preprocessing API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">PRJ381 Data Preprocessing API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">PRJ381 Data Preprocessing API Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="prj381-data-preprocessing-api-documentation">
+<h1>PRJ381 Data Preprocessing API Documentation<a class="headerlink" href="#prj381-data-preprocessing-api-documentation" title="Link to this heading"></a></h1>
+<p>Welcome to the documentation for the PRJ381 Data Preprocessing API, a comprehensive FastAPI-based service for collecting and enriching species observation data for machine learning and transfer learning applications.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#project-purpose">Project Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#data-provenance">Data provenance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#use-cases">Use Cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#technical-highlights">Technical Highlights</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#ml-pipeline-workflow">ML Pipeline Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#data-sources">Data sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#invasion-risk-heatmap-interactive">Invasion Risk Heatmap (Interactive)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#advanced-usage">Advanced Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#error-handling">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#performance-tips">Performance Tips</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html#interactive-api-documentation">Interactive API Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html#module-app.main">Main Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html#routers">Routers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_reference.html#services">Services</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#system-overview">System Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#data-flow">Data Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#async-architecture">Async Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#scalability-considerations">Scalability Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#security-architecture">Security Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#deployment-architecture">Deployment Architecture</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="documentation-types">
+<h1>Documentation Types<a class="headerlink" href="#documentation-types" title="Link to this heading"></a></h1>
+<p>This project provides multiple types of documentation to serve different needs:</p>
+<dl>
+<dt><strong>For API Users</strong></dt><dd><blockquote>
+<div><ul class="simple">
+<li><p><strong>Interactive API Documentation</strong>: <a class="extlink-swagger reference external" href="http://localhost:8000/docs/docs">Swagger UI</a> - Try endpoints directly in your browser</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p><strong>Alternative API Documentation</strong>: <a class="extlink-redoc reference external" href="http://localhost:8000/redoc/redoc">ReDoc</a> - Clean, responsive API reference</p></li>
+<li><p><strong>User Guide</strong>: <a class="reference internal" href="user_guide.html"><span class="doc">User Guide</span></a> - Step-by-step usage examples</p></li>
+</ul>
+</dd>
+<dt><strong>For Developers</strong></dt><dd><ul class="simple">
+<li><p><strong>API Reference</strong>: <a class="reference internal" href="api_reference.html"><span class="doc">API Reference</span></a> - Complete code documentation</p></li>
+<li><p><strong>Architecture Guide</strong>: <a class="reference internal" href="architecture.html"><span class="doc">Architecture</span></a> - System design and components</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Quick Start</strong>: If you just want to try the API, head to the <a class="extlink-swagger reference external" href="http://localhost:8000/docs/docs">interactive documentation</a> and start making requests!</p>
+</div>
+</section>
+<section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
+<p>This microservice provides:</p>
+<ul class="simple">
+<li><p><strong>GBIF API Integration</strong>: Global species occurrence data collection and management</p></li>
+<li><p><strong>WorldClim Integration</strong>: Real climate data extraction from v2.1 bioclimate variables (8 variables)</p></li>
+<li><p><strong>SRTM Elevation Data</strong>: Topographic enrichment via Open-Topo-Data API (30m resolution)</p></li>
+<li><p><strong>CSV Export</strong>: File-based ML-ready datasets for training and validation</p></li>
+<li><p><strong>FastAPI REST API</strong>: Modern, async REST endpoints with automatic documentation</p></li>
+<li><dl class="simple">
+<dt><strong>XGBoost Model</strong>: Invasion risk prediction and interactive probability heatmap</dt><dd><p>with hover tooltips, click popups, top-5 risk hotspots, and a Google Maps navigation button</p>
+</dd>
+</dl>
+</li>
+<li><p><strong>Transfer Learning Support</strong>: Global training datasets for local model validation</p></li>
+</ul>
+<p>The service is designed for creating high-quality training datasets for species distribution modeling and invasion risk assessment.</p>
+</section>
+<section id="data-provenance-and-sources">
+<h1>Data provenance and sources<a class="headerlink" href="#data-provenance-and-sources" title="Link to this heading"></a></h1>
+<p>This API uses environmental and species data from known public datasets:</p>
+<ul class="simple">
+<li><p>WorldClim v2.1 for bioclimate variables</p></li>
+<li><p>SRTM elevation via the Open-Topo-Data API</p></li>
+<li><p>GBIF for species occurrence records</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h1>
+<ol class="arabic">
+<li><p><strong>Install Dependencies</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Download WorldClim Data</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Place GeoTIFF files in data/worldclim/ directory</span>
+<span class="c1"># Required: wc2.1_10m_bio_1.tif, bio_4-6, bio_12-15</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Run the API</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uvicorn</span> <span class="n">app</span><span class="o">.</span><span class="n">main</span><span class="p">:</span><span class="n">app</span> <span class="o">--</span><span class="n">reload</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Build Documentation</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">build_docs</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">serve</span> <span class="o">--</span><span class="nb">open</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="api-workflow">
+<h1>API Workflow<a class="headerlink" href="#api-workflow" title="Link to this heading"></a></h1>
+<p>Follow this sequence for optimal results:</p>
+<ol class="arabic simple">
+<li><p><strong>System Status</strong>: <cite>GET /api/v1/status/health</cite> - Verify system health and WorldClim files</p></li>
+<li><p><strong>Environmental Data</strong>: <cite>POST /api/v1/environmental/extract-batch</cite> - Extract climate + elevation</p></li>
+<li><p><strong>Dataset Creation</strong>: <cite>POST /api/v1/datasets/generate-ml-ready</cite> - Create enriched CSV datasets</p></li>
+<li><p><strong>Predictions</strong>: <cite>GET /api/v1/predictions/heatmap</cite> - Generate invasion risk heatmaps</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When running locally, the API will be available at <a class="reference external" href="http://localhost:8000">http://localhost:8000</a></p>
+<p>The documentation will be built and served automatically using the universal build script.</p>
+<p>For manual builds:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build only</span>
+<span class="n">python</span> <span class="n">build_docs</span><span class="o">.</span><span class="n">py</span>
+
+<span class="c1"># Clean build and serve</span>
+<span class="n">python</span> <span class="n">build_docs</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">clean</span> <span class="o">--</span><span class="n">serve</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Martinus Christoffel Wolmarans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
