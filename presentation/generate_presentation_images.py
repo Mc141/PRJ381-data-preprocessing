@@ -23,13 +23,13 @@ plt.rcParams['legend.fontsize'] = 11
 output_dir = 'presentation_images'
 os.makedirs(output_dir, exist_ok=True)
 
-print("🎨 Generating presentation images...")
+print("Generating presentation images...")
 print("=" * 60)
 
 # ============================================================================
 # 1. Confusion Matrices Comparison (3-panel)
 # ============================================================================
-print("\n📊 Creating confusion matrices comparison...")
+print("\nCreating confusion matrices comparison...")
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
@@ -58,12 +58,12 @@ plt.suptitle('Confusion Matrix Comparison - All Models',
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, 'confusion_matrices_comparison.png'), 
             bbox_inches='tight', dpi=300)
-print("   ✅ confusion_matrices_comparison.png")
+print("   DONE: confusion_matrices_comparison.png")
 
 # ============================================================================
 # 2. Transfer Learning Performance
 # ============================================================================
-print("\n📊 Creating transfer learning comparison...")
+print("\nCreating transfer learning comparison...")
 
 fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -110,12 +110,12 @@ ax.text(2.5, 0.81, 'Good Performance', fontsize=9, color='green', style='italic'
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, 'transfer_learning_comparison.png'), 
             bbox_inches='tight', dpi=300)
-print("   ✅ transfer_learning_comparison.png")
+print("   DONE: transfer_learning_comparison.png")
 
 # ============================================================================
 # 3. Feature Importance Comparison
 # ============================================================================
-print("\n📊 Creating feature importance comparison...")
+print("\nCreating feature importance comparison...")
 
 data = {
     'Feature': ['longitude', 'latitude', 'bio4', 'elevation', 'bio6', 
@@ -160,12 +160,12 @@ ax.annotate('Climate\nFocus', xy=(2, 0.113), xytext=(3.5, 0.18),
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, 'feature_comparison_across_models.png'), 
             bbox_inches='tight', dpi=300)
-print("   ✅ feature_comparison_across_models.png")
+print("   DONE: feature_comparison_across_models.png")
 
 # ============================================================================
 # 4. Model Performance Radar Chart
 # ============================================================================
-print("\n📊 Creating performance radar chart...")
+print("\nCreating performance radar chart...")
 
 from matplotlib.patches import Circle, RegularPolygon
 from matplotlib.path import Path
@@ -221,12 +221,12 @@ plt.title('Model Performance Comparison\nRadar Chart',
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, 'performance_radar_chart.png'), 
             bbox_inches='tight', dpi=300)
-print("   ✅ performance_radar_chart.png")
+print("   DONE: performance_radar_chart.png")
 
 # ============================================================================
 # 5. Sensitivity vs Specificity Trade-off
 # ============================================================================
-print("\n📊 Creating sensitivity-specificity trade-off...")
+print("\nCreating sensitivity-specificity trade-off...")
 
 fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -272,12 +272,12 @@ ax.annotate('Best\nBalance', xy=(0.37, 0.981), xytext=(0.5, 0.75),
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, 'sensitivity_specificity_tradeoff.png'), 
             bbox_inches='tight', dpi=300)
-print("   ✅ sensitivity_specificity_tradeoff.png")
+print("   DONE: sensitivity_specificity_tradeoff.png")
 
 # ============================================================================
 # 6. Model Selection Decision Tree
 # ============================================================================
-print("\n📊 Creating model selection flowchart...")
+print("\nCreating model selection flowchart...")
 
 fig, ax = plt.subplots(figsize=(12, 10))
 ax.set_xlim(0, 10)
@@ -339,14 +339,14 @@ plt.title('Model Selection Decision Flow', fontsize=16, fontweight='bold', pad=2
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, 'model_selection_flowchart.png'), 
             bbox_inches='tight', dpi=300)
-print("   ✅ model_selection_flowchart.png")
+print("   DONE: model_selection_flowchart.png")
 
 # ============================================================================
 # Summary
 # ============================================================================
 print("\n" + "=" * 60)
-print("✅ Successfully generated 6 presentation images!")
-print(f"📁 Images saved to: {output_dir}/")
+print("Successfully generated 6 presentation images!")
+print(f"Images saved to: {output_dir}/")
 print("\nGenerated files:")
 print("  1. confusion_matrices_comparison.png")
 print("  2. transfer_learning_comparison.png")
@@ -355,10 +355,10 @@ print("  4. performance_radar_chart.png")
 print("  5. sensitivity_specificity_tradeoff.png")
 print("  6. model_selection_flowchart.png")
 print("\n" + "=" * 60)
-print("\n📋 Still need to create manually:")
-print("  • Data sources map (use mapping library or PowerPoint)")
-print("  • Pipeline architecture diagram (use draw.io or Lucidchart)")
-print("  • API architecture diagram (use draw.io or Lucidchart)")
-print("  • Heatmap screenshot (run: python -m models.xgboost.generate_heatmap_api)")
-print("\n💡 Tip: Use these images in your presentation slides!")
+print("\nStill need to create manually:")
+print("  * Data sources map (use mapping library or PowerPoint)")
+print("  * Pipeline architecture diagram (use draw.io or Lucidchart)")
+print("  * API architecture diagram (use draw.io or Lucidchart)")
+print("  * Heatmap screenshot (run: python -m models.xgboost.generate_heatmap_api)")
+print("\nTip: Use these images in your presentation slides!")
 print("=" * 60)

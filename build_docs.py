@@ -265,7 +265,7 @@ Examples:
     try:
         # Get universal paths
         paths = get_project_paths()
-        print(f"🏠 Project root: {paths['project_root']}")
+        print(f"[INFO] Project root: {paths['project_root']}")
         print(f"[INFO] Docs directory: {paths['docs_dir']}")
         
         # Check if docs directory exists
@@ -317,14 +317,14 @@ Examples:
         return 0
         
     except FileNotFoundError as e:
-        print(f"❌ {e}")
-        print("💡 Make sure you're running this script from the project directory")
+        print(f"[ERROR] {e}")
+        print("[INFO] Make sure you're running this script from the project directory")
         return 1
     except KeyboardInterrupt:
-        print("\n👋 Build cancelled by user")
+        print("\n[INFO] Build cancelled by user")
         return 0
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+        print(f"[ERROR] Unexpected error: {e}")
         return 1
 
 
